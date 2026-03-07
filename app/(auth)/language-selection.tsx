@@ -20,7 +20,7 @@ export default function LanguageSelectionScreen() {
     if (selectedLanguage) {
       setLanguage(selectedLanguage);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/agendar');
+      router.replace('/(auth)/login');
     }
   };
 

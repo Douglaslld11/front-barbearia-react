@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
-import { Mail, Lock, Scissors, ArrowRight } from 'lucide-react-native';
+import { Mail, Lock, Scissors } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { useLanguage } from '../../stores/LanguageContext';
 
 export default function LoginScreen() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      Alert.alert('Erro', t('login.email') + ' / ' + t('login.password'));
       return;
     }
 
@@ -23,7 +25,7 @@ export default function LoginScreen() {
     // Simulação de autenticação
     setTimeout(() => {
       setIsLoading(false);
-      router.replace('/(auth)/language-selection');
+      router.replace('/agendar');
     }, 1500);
   };
 
@@ -37,15 +39,15 @@ export default function LoginScreen() {
           <View style={styles.logoCircle}>
             <Scissors color={COLORS.primary} size={40} />
           </View>
-          <Text style={styles.brandName}>BarberFlow</Text>
-          <Text style={styles.brandTagline}>Sua melhor versão começa aqui</Text>
+          <Text style={styles.brandName}>{t('login.title')}</Text>
+          <Text style={styles.brandTagline}>{t('login.tagline')}</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
             <Mail size={20} color={COLORS.textMuted} style={styles.inputIcon} />
             <TextInput
-              placeholder="E-mail"
+              placeholder={t('login.email')}
               placeholderTextColor={COLORS.textMuted}
               style={styles.input}
               value={email}
@@ -58,7 +60,7 @@ export default function LoginScreen() {
           <View style={styles.inputContainer}>
             <Lock size={20} color={COLORS.textMuted} style={styles.inputIcon} />
             <TextInput
-              placeholder="Senha"
+              placeholder={t('login.password')}
               placeholderTextColor={COLORS.textMuted}
               style={styles.input}
               value={password}
@@ -68,14 +70,14 @@ export default function LoginScreen() {
           </View>
 
           <Pressable 
-            onPress={() => Alert.alert('Esqueci minha senha', 'Link de recuperação enviado para o e-mail informado.')}
+            onPress={() => Alert.alert(t('login.forgot'), '...')}
             style={styles.forgotPassword}
           >
-            <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+            <Text style={styles.forgotPasswordText}>{t('login.forgot')}</Text>
           </Pressable>
 
           <Button 
-            title="Entrar" 
+            title={t('login.submit')} 
             onPress={handleLogin} 
             isLoading={isLoading}
             style={styles.loginButton} 
@@ -83,9 +85,9 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Não tem uma conta? </Text>
+          <Text style={styles.footerText}>{t('login.noAccount')} </Text>
           <Pressable>
-            <Text style={styles.footerLink}>Cadastre-se</Text>
+            <Text style={styles.footerLink}>{t('login.register')}</Text>
           </Pressable>
         </View>
       </View>
