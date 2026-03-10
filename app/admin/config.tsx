@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeIn, FadeOut, FadeInUp } from 'react-native-reanimated';
+import * as ImagePicker from 'expo-image-picker';
 import { useBarbearia } from '../../stores/BarbeariaContext';
 import { useLanguage } from '../../stores/LanguageContext';
 import { Card } from '../../components/ui/Card';
@@ -27,7 +28,9 @@ import {
   Scissors,
   Layout,
   MapPin,
-  Users
+  Users,
+  Camera,
+  Image as ImageIcon
 } from 'lucide-react-native';
 
 export default function ConfigPage() {
@@ -65,6 +68,27 @@ export default function ConfigPage() {
       setNumero(barbearia.numero || '');
     }
   }, [barbearia]);
+
+  const pickImage = async (setter: (uri: string) => void) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para escolher a foto.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true, // Usamos base64 para persistência simples no AsyncStorage
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      setter(`data:image/jpeg;base64,${result.assets[0].base64}`);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -172,10 +196,18 @@ export default function ConfigPage() {
                 <Text style={styles.label}>Slug da URL</Text>
                 <TextInput style={styles.input} value={slug} onChangeText={setSlug} placeholder="Ex: minha-barbearia" placeholderTextColor={COLORS.textMuted} />
               </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>URL da Logo</Text>
-                <TextInput style={styles.input} value={logo} onChangeText={setLogo} placeholder="https://..." placeholderTextColor={COLORS.textMuted} />
-              </View>
+              
+              <Text style={styles.label}>Logo da Barbearia</Text>
+              <TouchableOpacity style={styles.imagePicker} onPress={() => pickImage(setLogo)}>
+                {logo ? (
+                  <Image source={{ uri: logo }} style={styles.pickedLogo} />
+                ) : (
+                  <View style={styles.imagePlaceholder}>
+                    <Camera color={COLORS.textMuted} size={32} />
+                    <Text style={styles.imagePlaceholderText}>Selecionar Logo</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             </Card>
           </Animated.View>
         )}
@@ -249,8 +281,20 @@ export default function ConfigPage() {
 
               <View style={styles.addBox}>
                 <TextInput style={styles.inputSmall} value={newBarberName} onChangeText={setNewBarberName} placeholder="Nome do Barbeiro" placeholderTextColor={COLORS.textMuted} />
-                <TextInput style={styles.inputSmall} value={newBarberPhoto} onChangeText={setNewBarberPhoto} placeholder="URL da Foto" placeholderTextColor={COLORS.textMuted} />
-                <Button title="Adicionar" onPress={handleAddBarber} variant="outline" style={{marginTop: 8}} />
+                
+                <Text style={[styles.label, {marginTop: 10}]}>Foto do Barbeiro</Text>
+                <TouchableOpacity style={styles.imagePickerSmall} onPress={() => pickImage(setNewBarberPhoto)}>
+                  {newBarberPhoto ? (
+                    <Image source={{ uri: newBarberPhoto }} style={styles.pickedAvatar} />
+                  ) : (
+                    <View style={styles.imagePlaceholderSmall}>
+                      <Users color={COLORS.textMuted} size={24} />
+                      <Text style={styles.imagePlaceholderTextSmall}>Escolher Foto</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                <Button title="Adicionar Barbeiro" onPress={handleAddBarber} variant="outline" style={{marginTop: 15}} />
               </View>
             </Card>
           </Animated.View>
@@ -324,12 +368,64 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.bodySmall
   },
   row: { flexDirection: 'row' },
+  imagePicker: {
+    width: '100%',
+    height: 150,
+    borderRadius: BORDER_RADIUS.lg,
+    backgroundColor: COLORS.surfaceLight,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+    overflow: 'hidden',
+  },
+  pickedLogo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  imagePlaceholder: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  imagePlaceholderText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textMuted,
+  },
+  imagePickerSmall: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  pickedAvatar: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholderSmall: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  imagePlaceholderTextSmall: {
+    fontSize: 10,
+    color: COLORS.textMuted,
+    textAlign: 'center',
+  },
   addBox: { marginTop: 20, padding: 15, backgroundColor: `${COLORS.primary}05`, borderRadius: BORDER_RADIUS.lg, borderStyle: 'dashed', borderWidth: 1, borderColor: COLORS.primary },
   listItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: COLORS.divider },
   itemName: { ...TYPOGRAPHY.body, color: COLORS.text, fontWeight: '700' },
   itemMeta: { ...TYPOGRAPHY.caption, color: COLORS.textMuted, marginTop: 4 },
   deleteBtn: { padding: 8 },
   avatar: { width: 50, height: 50, borderRadius: 25 },
+  list: { marginBottom: 10 },
   finishContainer: { alignItems: 'center', marginTop: 40 },
   finishTitle: { ...TYPOGRAPHY.h1, color: COLORS.text, marginTop: 20 },
   linkCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.surface, padding: 20, borderRadius: BORDER_RADIUS.xl, marginTop: 40, borderWidth: 1, borderColor: COLORS.primary, ...(SHADOWS.medium as any) },
