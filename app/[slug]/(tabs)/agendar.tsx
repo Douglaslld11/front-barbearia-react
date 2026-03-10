@@ -140,6 +140,18 @@ export default function AgendarScreen() {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const isPastTime = (timeStr: string) => {
+    if (!isSameDay(selectedDate, startOfToday())) return false;
+    
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const now = new Date();
+    
+    if (hours < now.getHours()) return true;
+    if (hours === now.getHours() && minutes <= now.getMinutes()) return true;
+    
+    return false;
+  };
+
   // Step 0: Services & Barber
   if (step === 0) {
     return (
@@ -284,7 +296,7 @@ export default function AgendarScreen() {
               {MORNING_TIMES.map((time) => {
                 const isBooked = barbearia?.appointments.some(a => a.date === format(selectedDate, 'dd/MM/yyyy') && a.time === time && a.barberId === selectedBarber && a.status !== 'rejected');
                 const isBlocked = barbearia?.blockedSlots?.some(s => s.date === format(selectedDate, 'dd/MM/yyyy') && s.time === time && s.barberId === selectedBarber);
-                const isUnavailable = isBooked || isBlocked;
+                const isUnavailable = isBooked || isBlocked || isPastTime(time);
                 return (
                   <Pressable 
                     key={time} 
@@ -309,7 +321,7 @@ export default function AgendarScreen() {
               {AFTERNOON_TIMES.map((time) => {
                 const isBooked = barbearia?.appointments.some(a => a.date === format(selectedDate, 'dd/MM/yyyy') && a.time === time && a.barberId === selectedBarber && a.status !== 'rejected');
                 const isBlocked = barbearia?.blockedSlots?.some(s => s.date === format(selectedDate, 'dd/MM/yyyy') && s.time === time && s.barberId === selectedBarber);
-                const isUnavailable = isBooked || isBlocked;
+                const isUnavailable = isBooked || isBlocked || isPastTime(time);
                 return (
                   <Pressable 
                     key={time} 
