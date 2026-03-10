@@ -71,7 +71,7 @@ interface BarbeariaContextType {
   removeBarber: (id: string) => Promise<void>;
   addAppointment: (appointment: Omit<Appointment, 'id' | 'status'>) => Promise<void>;
   updateAppointmentStatus: (id: string, status: 'accepted' | 'rejected') => Promise<void>;
-  toggleBlockedSlot: (barberId: string, date: string, time: string) => Promise<void>;
+  updateBlockedSlots: (slots: {barberId: string, date: string, time: string}[], action: 'block' | 'unblock') => Promise<void>;
 }
 
 const BarbeariaContext = createContext<BarbeariaContextType | undefined>(undefined);
@@ -234,25 +234,25 @@ export function BarbeariaProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
 
-  const toggleBlockedSlot = async (barberId: string, date: string, time: string) => {
+  const updateBlockedSlots = async (slots: {barberId: string, date: string, time: string}[], action: 'block' | 'unblock') => {
     if (!barbearia) return;
     
-    const existingIndex = barbearia.blockedSlots?.findIndex(
-      s => s.barberId === barberId && s.date === date && s.time === time
-    );
-
     let newBlockedSlots = [...(barbearia.blockedSlots || [])];
 
-    if (existingIndex !== undefined && existingIndex >= 0) {
-      newBlockedSlots.splice(existingIndex, 1);
-    } else {
-      newBlockedSlots.push({
-        id: Math.random().toString(36).substr(2, 9),
-        barberId,
-        date,
-        time
-      });
-    }
+    slots.forEach(slot => {
+      const existingIndex = newBlockedSlots.findIndex(
+        s => s.barberId === slot.barberId && s.date === slot.date && s.time === slot.time
+      );
+
+      if (action === 'block' && existingIndex === -1) {
+        newBlockedSlots.push({
+          id: Math.random().toString(36).substr(2, 9),
+          ...slot
+        });
+      } else if (action === 'unblock' && existingIndex >= 0) {
+        newBlockedSlots.splice(existingIndex, 1);
+      }
+    });
 
     const updated = {
       ...barbearia,
@@ -274,7 +274,7 @@ export function BarbeariaProvider({ children }: { children: ReactNode }) {
       removeBarber,
       addAppointment,
       updateAppointmentStatus,
-      toggleBlockedSlot
+      updateBlockedSlots
     }}>
       {children}
     </BarbeariaContext.Provider>
