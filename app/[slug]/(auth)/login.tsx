@@ -35,7 +35,7 @@ export default function LoginScreen() {
     setTimeout(() => {
       setIsLoading(false);
       // Navega para a tela de agendamento dentro do slug da barbearia atual
-      router.replace(`/${barbearia?.slug}/agendar`);
+      router.replace(`/${barbearia?.slug}/(tabs)/agendar`);
     }, 1500);
   };
 

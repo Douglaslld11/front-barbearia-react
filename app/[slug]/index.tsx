@@ -15,7 +15,7 @@ export default function TenantLanguageSelection() {
 
   const handleSelect = (lang: 'pt' | 'es') => {
     setLanguage(lang);
-    router.push(`/${slug}/(tabs)/agendar`);
+    router.push(`/${slug}/(auth)/login`);
   };
 
   if (isLoading) return null;
