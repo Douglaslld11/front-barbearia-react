@@ -7,7 +7,8 @@ import {
   KeyboardAvoidingView, 
   Platform, 
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
+  Pressable
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
