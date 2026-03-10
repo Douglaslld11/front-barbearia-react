@@ -1,13 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, Dimensions } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { useLanguage } from '../stores/LanguageContext';
-import { Scissors, Calendar, Layout, Smartphone } from 'lucide-react-native';
+import { Scissors, Calendar, Layout, Smartphone, MessageCircle, Palette, CreditCard, Lock } from 'lucide-react-native';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const { width } = Dimensions.get('window');
+const isMobile = width < 768;
 
 export default function LandingPage() {
   const { t } = useLanguage();
@@ -17,9 +20,41 @@ export default function LandingPage() {
   };
 
   const handleAdmin = () => {
-    // A seleção de idioma já foi feita no index.tsx, então vamos direto para o login
     router.push('/admin/login');
   };
+
+  const features = [
+    {
+      icon: <Layout color={COLORS.primary} size={28} />,
+      title: 'Sistema Multi-Tenant',
+      desc: 'Link exclusivo para sua barbearia (ex: app.com/sua-marca) sem concorrência.'
+    },
+    {
+      icon: <Palette color={COLORS.primary} size={28} />,
+      title: 'Personalização de Cores',
+      desc: 'Deixe o aplicativo do cliente com as cores e a logomarca exatas da sua empresa.'
+    },
+    {
+      icon: <CreditCard color={COLORS.primary} size={28} />,
+      title: 'Moeda Dupla e Pagamentos',
+      desc: 'Suporte automático para Real (R$) e Guarani (GS), além de PIX, Cartão e Alias.'
+    },
+    {
+      icon: <MessageCircle color={COLORS.primary} size={28} />,
+      title: 'Avisos Automáticos',
+      desc: 'Notificações e lembretes para os clientes via WhatsApp, SMS e E-mail.'
+    },
+    {
+      icon: <Calendar color={COLORS.primary} size={28} />,
+      title: 'Agenda Inteligente',
+      desc: 'Gestão completa com a possibilidade de bloquear e liberar horários em massa.'
+    },
+    {
+      icon: <Smartphone color={COLORS.primary} size={28} />,
+      title: 'Experiência App Nativo',
+      desc: 'Rápido, fluido e sem necessidade de baixar nada na loja de aplicativos.'
+    }
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -30,18 +65,20 @@ export default function LandingPage() {
           <View style={styles.heroLogo}>
             <Scissors color={COLORS.background} size={40} />
           </View>
-          <Text style={styles.heroTitle}>BarberFlow <Text style={styles.highlight}>SaaS</Text></Text>
-          <Text style={styles.heroSubtitle}>{t('landing.subtitle')}</Text>
+          <Text style={styles.heroTitle}>BarberFlow <Text style={styles.highlight}>Pro</Text></Text>
+          <Text style={styles.heroSubtitle}>
+            Transforme o atendimento da sua barbearia com o sistema de agendamento mais completo e adaptável do mercado.
+          </Text>
           
           <View style={styles.buttonContainer}>
             <Button 
-              title={t('landing.demo')} 
+              title={t('landing.demo') || "Ver Demonstração"} 
               onPress={handleViewDemo} 
               style={styles.ctaButton}
               textStyle={{ color: COLORS.background }}
             />
             <Button 
-              title={t('landing.admin')} 
+              title={t('landing.admin') || "Painel do Barbeiro"} 
               variant="outline" 
               onPress={handleAdmin} 
               style={styles.ctaButton}
@@ -52,39 +89,25 @@ export default function LandingPage() {
         {/* Features */}
         <View style={styles.section}>
           <Animated.Text entering={FadeInUp.delay(300).duration(600)} style={styles.sectionTitle}>
-            {t('landing.why')}
+            {t('landing.why') || "Tudo que sua barbearia precisa"}
           </Animated.Text>
           
           <View style={styles.grid}>
-            <Card animated delay={400} style={styles.featureCard}>
-              <View style={styles.iconBox}>
-                <Layout color={COLORS.primary} size={28} />
-              </View>
-              <Text style={styles.featureTitle}>{t('landing.feature1.title')}</Text>
-              <Text style={styles.featureDescription}>{t('landing.feature1.desc')}</Text>
-            </Card>
-
-            <Card animated delay={500} style={styles.featureCard}>
-              <View style={styles.iconBox}>
-                <Calendar color={COLORS.primary} size={28} />
-              </View>
-              <Text style={styles.featureTitle}>{t('landing.feature2.title')}</Text>
-              <Text style={styles.featureDescription}>{t('landing.feature2.desc')}</Text>
-            </Card>
-
-            <Card animated delay={600} style={styles.featureCard}>
-              <View style={styles.iconBox}>
-                <Smartphone color={COLORS.primary} size={28} />
-              </View>
-              <Text style={styles.featureTitle}>{t('landing.feature3.title')}</Text>
-              <Text style={styles.featureDescription}>{t('landing.feature3.desc')}</Text>
-            </Card>
+            {features.map((item, index) => (
+              <Card key={index} animated delay={400 + (index * 100)} style={styles.featureCard}>
+                <View style={styles.iconBox}>
+                  {item.icon}
+                </View>
+                <Text style={styles.featureTitle}>{item.title}</Text>
+                <Text style={styles.featureDescription}>{item.desc}</Text>
+              </Card>
+            ))}
           </View>
         </View>
 
         {/* Footer */}
-        <Animated.View entering={FadeInUp.delay(800)} style={styles.footer}>
-          <Text style={styles.footerText}>© 2026 BarberFlow. Criado com React Native.</Text>
+        <Animated.View entering={FadeInUp.delay(1000)} style={styles.footer}>
+          <Text style={styles.footerText}>© 2026 BarberFlow Pro. Sistema SaaS Multi-Tenant.</Text>
         </Animated.View>
 
       </ScrollView>
@@ -102,7 +125,7 @@ const styles = StyleSheet.create({
   },
   hero: {
     paddingHorizontal: SPACING.xl,
-    paddingTop: Platform.OS === 'web' ? 80 : 40,
+    paddingTop: isMobile ? SPACING.xxl : 80,
     paddingBottom: SPACING.xxxl,
     alignItems: 'center',
     backgroundColor: COLORS.surface,
@@ -125,6 +148,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.md,
     textAlign: 'center',
+    fontSize: isMobile ? 32 : 48,
   },
   highlight: {
     color: COLORS.primary,
@@ -135,6 +159,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: SPACING.xl,
     maxWidth: 600,
+    paddingHorizontal: isMobile ? SPACING.sm : 0,
   },
   buttonContainer: {
     width: '100%',
@@ -145,7 +170,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   section: {
-    padding: SPACING.xl,
+    padding: SPACING.lg,
     paddingTop: SPACING.xxxl,
     alignItems: 'center',
   },
@@ -154,18 +179,19 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.xxl,
     textAlign: 'center',
+    fontSize: isMobile ? 24 : 32,
   },
   grid: {
     width: '100%',
     maxWidth: 1000,
-    flexDirection: Platform.OS === 'web' ? 'row' : 'column',
+    flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: SPACING.lg,
   },
   featureCard: {
-    flex: Platform.OS === 'web' ? 1 : undefined,
-    minWidth: Platform.OS === 'web' ? 300 : '100%',
+    width: isMobile ? '100%' : '30%',
+    minWidth: isMobile ? '100%' : 280,
     padding: SPACING.xl,
     alignItems: 'flex-start',
   },
@@ -182,10 +208,12 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.h3,
     color: COLORS.text,
     marginBottom: SPACING.sm,
+    fontSize: isMobile ? 18 : 20,
   },
   featureDescription: {
     ...TYPOGRAPHY.body,
     color: COLORS.textMuted,
+    fontSize: isMobile ? 14 : 16,
   },
   footer: {
     padding: SPACING.xl,
@@ -195,5 +223,6 @@ const styles = StyleSheet.create({
   footerText: {
     ...TYPOGRAPHY.caption,
     color: COLORS.textMuted,
+    textAlign: 'center',
   },
 });

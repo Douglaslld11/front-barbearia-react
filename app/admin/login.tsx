@@ -99,23 +99,31 @@ export default function AdminLogin() {
                 </View>
               </View>
 
+              <Pressable 
+                onPress={() => {
+                   router.push('/admin/forgot-password');
+                }}
+                style={styles.forgotPassword}
+              >
+                <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+              </Pressable>
+
               <Button 
                 title={t('admin.login')} 
                 onPress={handleLogin} 
                 isLoading={isLoading}
                 style={styles.loginButton} 
               />
-            </View>
-          </Card>
-        </Animated.View>
+              </View>
+              </Card>
+              </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(400)} style={styles.footer}>
-          <Text style={styles.footerText}>{t('admin.noAccount')} </Text>
-          <TouchableOpacity>
-            <Text style={styles.footerLink}>{t('admin.register')}</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
+              <Animated.View entering={FadeInUp.delay(400)} style={styles.footer}>
+              <Text style={styles.footerText}>{t('admin.noAccount')} </Text>
+              <TouchableOpacity onPress={() => router.push('/admin/register')}>
+              <Text style={styles.footerLink}>{t('admin.register')}</Text>
+              </TouchableOpacity>
+              </Animated.View>      </View>
     </KeyboardAvoidingView>
   );
 }

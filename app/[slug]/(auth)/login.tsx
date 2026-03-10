@@ -87,8 +87,7 @@ export default function LoginScreen() {
 
           <Pressable 
             onPress={() => {
-               if(Platform.OS === 'web') window.alert(t('login.forgot'));
-               else Alert.alert(t('login.forgot'), '...');
+               router.push(`/${barbearia?.slug}/(auth)/forgot-password`);
             }}
             style={styles.forgotPassword}
           >
@@ -106,7 +105,7 @@ export default function LoginScreen() {
 
         <Animated.View entering={FadeInUp.delay(400)} style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.textMuted }]}>{t('login.noAccount')} </Text>
-          <Pressable>
+          <Pressable onPress={() => router.push(`/${barbearia?.slug}/(auth)/register`)}>
             <Text style={[styles.footerLink, { color: colors.primary }]}>{t('login.register')}</Text>
           </Pressable>
         </Animated.View>
