@@ -329,29 +329,25 @@ export default function AgendarScreen() {
           <Text style={[styles.subtitle, { color: colors.textMuted }]}>{t('lang.subtitle')}</Text>
         </View>
         <Animated.View entering={FadeInRight} style={styles.content}>
-          <Pressable 
-            style={[
-              styles.paymentOption, 
-              { backgroundColor: colors.surface, borderColor: colors.divider },
-              paymentMethod === 'pix' && { backgroundColor: colors.primary, borderColor: colors.primary }
-            ]} 
-            onPress={() => setPaymentMethod('pix')}
-          >
-            <CreditCard size={28} color={paymentMethod === 'pix' ? colors.background : colors.primary} />
-            <Text style={[styles.paymentText, { color: colors.text }, paymentMethod === 'pix' && { color: colors.background }]}>{t('book.pix')}</Text>
-          </Pressable>
-
-          <Pressable 
-            style={[
-              styles.paymentOption, 
-              { backgroundColor: colors.surface, borderColor: colors.divider },
-              paymentMethod === 'money' && { backgroundColor: colors.primary, borderColor: colors.primary }
-            ]} 
-            onPress={() => setPaymentMethod('money')}
-          >
-            <Wallet size={28} color={paymentMethod === 'money' ? colors.background : colors.primary} />
-            <Text style={[styles.paymentText, { color: colors.text }, paymentMethod === 'money' && { color: colors.background }]}>{t('book.money')}</Text>
-          </Pressable>
+          {availablePaymentMethods.map((method) => (
+            <Pressable 
+              key={method}
+              style={[
+                styles.paymentOption, 
+                { backgroundColor: colors.surface, borderColor: colors.divider },
+                paymentMethod === method && { backgroundColor: colors.primary, borderColor: colors.primary }
+              ]} 
+              onPress={() => setPaymentMethod(method)}
+            >
+              {method === 'pix' ? <Smartphone size={28} color={paymentMethod === method ? colors.background : colors.primary} /> :
+               method === 'card' ? <CreditCard size={28} color={paymentMethod === method ? colors.background : colors.primary} /> :
+               method === 'money' ? <Wallet size={28} color={paymentMethod === method ? colors.background : colors.primary} /> :
+               <Smartphone size={28} color={paymentMethod === method ? colors.background : colors.primary} />}
+              <Text style={[styles.paymentText, { color: colors.text }, paymentMethod === method && { color: colors.background }]}>
+                {t(`book.${method}`)}
+              </Text>
+            </Pressable>
+          ))}
 
           {paymentMethod === 'pix' && (
             <Animated.View entering={FadeInUp}>
@@ -363,12 +359,44 @@ export default function AgendarScreen() {
                     editable={false} 
                     style={[styles.pixInput, { backgroundColor: `${colors.background}80`, color: colors.text }]} 
                   />
-                  <Button 
-                    title="" 
-                    onPress={copyPixLink} 
-                    style={styles.copyBtn} 
-                  />
+                  <Pressable onPress={copyPixLink} style={[styles.copyBtn, { backgroundColor: `${colors.background}80` }]}>
+                    {isCopied ? <Check size={20} color={COLORS.success} /> : <Copy size={20} color={colors.primary} />}
+                  </Pressable>
                 </View>
+              </Card>
+            </Animated.View>
+          )}
+
+          {paymentMethod === 'alias' && (
+            <Animated.View entering={FadeInUp}>
+              <Card style={[styles.pixCard, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.pixLabel, { color: colors.textMuted }]}>{t('book.alias')}:</Text>
+                <View style={styles.pixCopyRow}>
+                  <TextInput 
+                    value="ALIAS-BARBER-GS-9283" 
+                    editable={false} 
+                    style={[styles.pixInput, { backgroundColor: `${colors.background}80`, color: colors.text }]} 
+                  />
+                  <Pressable onPress={copyPixLink} style={[styles.copyBtn, { backgroundColor: `${colors.background}80` }]}>
+                    {isCopied ? <Check size={20} color={COLORS.success} /> : <Copy size={20} color={colors.primary} />}
+                  </Pressable>
+                </View>
+              </Card>
+            </Animated.View>
+          )}
+          
+          {paymentMethod === 'card' && (
+            <Animated.View entering={FadeInUp}>
+              <Card style={[styles.pixCard, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.pixLabel, { color: colors.text }]}>{t('book.cardMsg') || 'O pagamento será realizado presencialmente na maquininha.'}</Text>
+              </Card>
+            </Animated.View>
+          )}
+
+          {paymentMethod === 'money' && (
+            <Animated.View entering={FadeInUp}>
+              <Card style={[styles.pixCard, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.pixLabel, { color: colors.text }]}>{t('book.moneyMsg')}</Text>
               </Card>
             </Animated.View>
           )}

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, ActivityIndicator, ViewStyle, TextStyle } 
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '../../constants/theme';
+import { useBarbearia } from '../../stores/BarbeariaContext';
 
 interface ButtonProps {
   title: string;
@@ -25,6 +26,10 @@ export function Button({
   style,
   textStyle
 }: ButtonProps) {
+  const { barbearia } = useBarbearia();
+  const primaryColor = barbearia?.colors?.primary || COLORS.primary;
+  const backgroundColor = barbearia?.colors?.background || COLORS.background;
+
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
@@ -49,22 +54,22 @@ export function Button({
   const getVariantStyles = () => {
     switch (variant) {
       case 'outline':
-        return styles.outline;
+        return [styles.outline, { borderColor: primaryColor }];
       case 'ghost':
         return styles.ghost;
       default:
-        return styles.primary;
+        return [styles.primary, { backgroundColor: primaryColor }];
     }
   };
 
   const getTextStyles = () => {
     switch (variant) {
       case 'outline':
-        return { color: COLORS.primary };
+        return { color: primaryColor };
       case 'ghost':
         return { color: COLORS.textMuted };
       default:
-        return { color: COLORS.background };
+        return { color: backgroundColor };
     }
   };
 
@@ -83,7 +88,7 @@ export function Button({
       ]}
     >
       {isLoading ? (
-        <ActivityIndicator color={variant === 'primary' ? COLORS.background : COLORS.primary} />
+        <ActivityIndicator color={variant === 'primary' ? backgroundColor : primaryColor} />
       ) : (
         <Text style={[styles.text, getTextStyles(), textStyle]}>{title}</Text>
       )}
@@ -102,13 +107,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   primary: {
-    backgroundColor: COLORS.primary,
     ...(SHADOWS.medium as any),
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: COLORS.primary,
   },
   ghost: {
     backgroundColor: 'transparent',
