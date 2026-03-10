@@ -1,19 +1,22 @@
 import { Tabs } from 'expo-router';
 import { Home, Calendar, User } from 'lucide-react-native';
-import { COLORS } from '../../constants/theme';
-import { useLanguage } from '../../stores/LanguageContext';
+import { COLORS } from '../../../constants/theme';
+import { useLanguage } from '../../../stores/LanguageContext';
+import { useBarbearia } from '../../../stores/BarbeariaContext';
 
 export default function TabLayout() {
   const { t } = useLanguage();
+  const { barbearia } = useBarbearia();
+  const colors = barbearia?.colors || COLORS;
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: COLORS.surface,
+          backgroundColor: colors.card,
           borderTopWidth: 0,
           elevation: 0,
           height: 60,

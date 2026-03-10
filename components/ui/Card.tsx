@@ -1,14 +1,17 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../../constants/theme';
 
 interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle | ViewStyle[];
   variant?: 'elevated' | 'flat' | 'outline';
+  animated?: boolean;
+  delay?: number;
 }
 
-export function Card({ children, style, variant = 'elevated' }: CardProps) {
+export function Card({ children, style, variant = 'elevated', animated = false, delay = 0 }: CardProps) {
   const getVariantStyles = () => {
     switch (variant) {
       case 'flat':
@@ -20,25 +23,31 @@ export function Card({ children, style, variant = 'elevated' }: CardProps) {
     }
   };
 
-  return (
+  const content = (
     <View style={[styles.card, getVariantStyles(), style]}>
       {children}
     </View>
   );
+
+  if (animated) {
+    return (
+      <Animated.View entering={FadeInUp.delay(delay).springify().damping(18)}>
+        {content}
+      </Animated.View>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({
   card: {
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    borderRadius: BORDER_RADIUS.xl,
     backgroundColor: COLORS.surface,
   },
   elevated: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...(SHADOWS.medium as any),
   },
   flat: {
     backgroundColor: COLORS.surfaceLight,
