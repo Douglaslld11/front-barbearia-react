@@ -107,13 +107,17 @@ export function BarbeariaProvider({ children }: { children: ReactNode }) {
           } else if (slug === 'vintage-barber') {
             setBarbearia(parsed);
           } else {
-             setBarbearia(null);
+             // Se o slug for diferente, podemos recriar um mock com esse slug para fins de demonstração
+             const newMock = { ...parsed, slug: slug };
+             setBarbearia(newMock);
           }
-        } else if (slug === 'vintage-barber' || !slug) {
+        } else {
+          // MOCK INICIAL (Primeira vez que o app abre em um dispositivo novo)
+          // Isso garante que o link funcione em qualquer celular mesmo sem banco de dados real
           const mock: BarbeariaData = {
             id: '1',
-            nome: 'Vintage Barber Shop',
-            slug: 'vintage-barber',
+            nome: slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Barbearia Modelo',
+            slug: slug || 'vintage-barber',
             logo: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=200&h=200&auto=format&fit=crop',
             endereco: 'Rua das Flores, 123',
             cidade: 'São Paulo',
@@ -127,12 +131,13 @@ export function BarbeariaProvider({ children }: { children: ReactNode }) {
               { id: '1', nome: 'Marcus Silva', foto: 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?w=400' },
             ],
             appointments: [],
+            paymentMethods: ['money', 'pix', 'card', 'alias'],
+            blockedSlots: [],
             colors: DEFAULT_COLORS,
           };
           setBarbearia(mock);
+          // Salva no novo dispositivo para que ele também tenha uma base de dados local
           await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mock));
-        } else {
-          setBarbearia(null);
         }
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
