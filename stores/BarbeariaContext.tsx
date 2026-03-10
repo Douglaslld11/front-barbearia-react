@@ -40,6 +40,7 @@ export interface BarbeariaData {
   services: Service[];
   barbers: Barber[];
   appointments: Appointment[];
+  paymentMethods: string[];
   colors: {
     primary: string;
     secondary: string;
