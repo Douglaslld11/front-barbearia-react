@@ -26,7 +26,8 @@ import {
   CreditCard,
   Wallet,
   Copy,
-  Check
+  Check,
+  Smartphone
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useLanguage } from '../../../stores/LanguageContext';
@@ -53,7 +54,7 @@ export default function AgendarScreen() {
   const [viewDate, setViewDate] = useState(startOfToday());
   const [selectedDate, setSelectedDate] = useState<Date>(addDays(startOfToday(), isSunday(startOfToday()) ? 1 : 0));
   const [selectedTime, setSelectedTime] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'money' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
   const dateLocale = language === 'pt' ? ptBR : es;
@@ -81,6 +82,22 @@ export default function AgendarScreen() {
     }
     return { totalPt: subtotalPt, totalEs: subtotalEs, isCombo: false };
   }, [selectedServices, services]);
+
+  const availablePaymentMethods = useMemo(() => {
+    if (!barbearia) return [];
+    
+    // Filtra pelos métodos habilitados pelo admin
+    let methods = barbearia.paymentMethods || ['money'];
+    
+    // Filtra por regra de negócio do idioma
+    if (language === 'pt') {
+      methods = methods.filter(m => m !== 'alias');
+    } else {
+      methods = methods.filter(m => m !== 'pix');
+    }
+    
+    return methods;
+  }, [barbearia, language]);
 
   const toggleService = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -500,7 +517,7 @@ const styles = StyleSheet.create({
   pixLabel: { ...TYPOGRAPHY.caption, marginBottom: SPACING.xs },
   pixCopyRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
   pixInput: { flex: 1, padding: SPACING.md, borderRadius: BORDER_RADIUS.md, ...TYPOGRAPHY.bodySmall },
-  copyBtn: { width: 48, height: 48, minHeight: 48 },
+  copyBtn: { width: 48, height: 48, minHeight: 48, justifyContent: 'center', alignItems: 'center', borderRadius: BORDER_RADIUS.sm },
   
   successContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.xl },
   successTitle: { ...TYPOGRAPHY.h1, marginTop: SPACING.xl, textAlign: 'center' },
