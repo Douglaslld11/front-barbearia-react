@@ -20,6 +20,8 @@ export default function AdminAgenda() {
 
   const appointments = barbearia?.appointments || [];
   const barbers = barbearia?.barbers || [];
+  const themeColors = barbearia?.colors || COLORS;
+  const primaryColor = themeColors.primary;
 
   const dateFormatted = format(selectedDate, 'dd/MM/yyyy');
   const dateLocale = language === 'pt' ? ptBR : es;
@@ -29,45 +31,43 @@ export default function AdminAgenda() {
   };
 
   return (
-    <View style={styles.container}>
-      <Animated.View entering={FadeInUp.duration(600)} style={styles.header}>
-        <Text style={styles.title}>{t('admin.agenda.title')}</Text>
-        <View style={styles.dateSelector}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <Animated.View entering={FadeInUp.duration(600)} style={[styles.header, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.title, { color: themeColors.text }]}>{t('admin.agenda.title')}</Text>
+        <View style={[styles.dateSelector, { backgroundColor: `${primaryColor}10` }]}>
           <TouchableOpacity onPress={() => changeDate(-1)} style={styles.navBtn}>
-            <ChevronLeft color={COLORS.primary} size={24} />
+            <ChevronLeft color={primaryColor} size={24} />
           </TouchableOpacity>
           <View style={styles.dateInfo}>
-            <CalendarIcon size={18} color={COLORS.primary} />
-            <Text style={styles.dateText}>
+            <CalendarIcon size={18} color={primaryColor} />
+            <Text style={[styles.dateText, { color: themeColors.text }]}>
               {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: dateLocale })}
             </Text>
           </View>
           <TouchableOpacity onPress={() => changeDate(1)} style={styles.navBtn}>
-            <ChevronRight color={COLORS.primary} size={24} />
+            <ChevronRight color={primaryColor} size={24} />
           </TouchableOpacity>
         </View>
       </Animated.View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.tableContainer}>
-          {/* Cabeçalho da Tabela (Barbeiros) */}
           <View style={styles.tableHeader}>
-            <View style={[styles.cell, styles.timeColumn]}>
-              <Text style={styles.headerText}>{t('admin.agenda.time')}</Text>
+            <View style={[styles.cell, styles.timeColumn, { backgroundColor: themeColors.surfaceLight }]}>
+              <Text style={[styles.headerText, { color: primaryColor }]}>{t('admin.agenda.time')}</Text>
             </View>
             {barbers.map(barber => (
-              <View key={barber.id} style={[styles.cell, styles.barberColumn]}>
-                <Text style={styles.headerText} numberOfLines={1}>{barber.nome}</Text>
+              <View key={barber.id} style={[styles.cell, styles.barberColumn, { backgroundColor: themeColors.surface }]}>
+                <Text style={[styles.headerText, { color: primaryColor }]} numberOfLines={1}>{barber.nome}</Text>
               </View>
             ))}
           </View>
 
-          {/* Corpo da Tabela (Horários) */}
           <ScrollView style={styles.tableBody} showsVerticalScrollIndicator={false}>
             {ALL_TIMES.map(time => (
               <View key={time} style={styles.tableRow}>
-                <View style={[styles.cell, styles.timeColumn]}>
-                  <Text style={styles.timeText}>{time}</Text>
+                <View style={[styles.cell, styles.timeColumn, { backgroundColor: themeColors.surfaceLight }]}>
+                  <Text style={[styles.timeText, { color: themeColors.text }]}>{time}</Text>
                 </View>
                 
                 {barbers.map(barber => {
@@ -84,15 +84,16 @@ export default function AdminAgenda() {
                       style={[
                         styles.cell, 
                         styles.barberColumn,
+                        { borderColor: themeColors.divider },
                         appointment ? (appointment.status === 'accepted' ? styles.busyCell : styles.pendingCell) : styles.freeCell
                       ]}
                     >
                       {appointment ? (
-                        <Text style={styles.appointmentText} numberOfLines={1}>
+                        <Text style={[styles.appointmentText, { color: themeColors.text }]} numberOfLines={1}>
                           {appointment.clientName}
                         </Text>
                       ) : (
-                        <Text style={styles.freeText}>{t('admin.agenda.free')}</Text>
+                        <Text style={[styles.freeText, { color: themeColors.textMuted }]}>{t('admin.agenda.free')}</Text>
                       )}
                     </View>
                   );
@@ -103,19 +104,18 @@ export default function AdminAgenda() {
         </View>
       </ScrollView>
 
-      {/* Legenda */}
-      <View style={styles.legend}>
+      <View style={[styles.legend, { backgroundColor: themeColors.surface }]}>
         <View style={styles.legendItem}>
           <View style={[styles.dot, { backgroundColor: COLORS.success }]} />
-          <Text style={styles.legendText}>{t('admin.agenda.confirmed')}</Text>
+          <Text style={[styles.legendText, { color: themeColors.textMuted }]}>{t('admin.agenda.confirmed')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.dot, { backgroundColor: '#EAB308' }]} />
-          <Text style={styles.legendText}>{t('admin.dashboard.pending_badge') || 'Pendente'}</Text>
+          <Text style={[styles.legendText, { color: themeColors.textMuted }]}>{t('admin.dashboard.pending_badge') || 'Pendente'}</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: COLORS.surfaceLight }]} />
-          <Text style={styles.legendText}>{t('admin.agenda.free')}</Text>
+          <View style={[styles.dot, { backgroundColor: themeColors.surfaceLight }]} />
+          <Text style={[styles.legendText, { color: themeColors.textMuted }]}>{t('admin.agenda.free')}</Text>
         </View>
       </View>
     </View>
