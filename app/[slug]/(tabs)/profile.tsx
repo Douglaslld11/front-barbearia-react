@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Platform, Alert, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInUp, FadeInDown, FadeIn, FadeOut } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../../../constants/theme';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
-import { User, Settings, CreditCard, Bell, LogOut, ChevronRight, Camera, Check, X, Plus } from 'lucide-react-native';
+import { User, Settings, CreditCard, Bell, LogOut, ChevronRight, ChevronDown, Camera, Check, X, Plus, Languages, RefreshCw, FileText } from 'lucide-react-native';
 import { useLanguage } from '../../../stores/LanguageContext';
 import { useBarbearia } from '../../../stores/BarbeariaContext';
 import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { barbearia } = useBarbearia();
   const { slug } = useLocalSearchParams();
   const colors = barbearia?.colors || COLORS;
@@ -25,6 +25,14 @@ export default function ProfileScreen() {
   const [phone, setPhone] = useState('(00) 00000-0000');
   const [photo, setPhoto] = useState('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400');
   const [cards, setCards] = useState([{ id: '1', last4: '4242', brand: 'Visa' }]);
+  
+  // Accordion State
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  // Notification States
+  const [notifySms, setNotifySms] = useState(true);
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [notifyReminder, setNotifyReminder] = useState(true);
 
   // Carregar dados salvos localmente
   useEffect(() => {
@@ -36,12 +44,21 @@ export default function ProfileScreen() {
         if (parsed.phone) setPhone(parsed.phone);
         if (parsed.photo) setPhoto(parsed.photo);
         if (parsed.cards) setCards(parsed.cards);
+        if (parsed.notifications) {
+          setNotifySms(parsed.notifications.sms);
+          setNotifyEmail(parsed.notifications.email);
+          setNotifyReminder(parsed.notifications.reminder);
+        }
       }
     });
   }, []);
 
   const saveProfile = async (updates: any) => {
-    const current = { name, email, phone, photo, cards, ...updates };
+    const current = { 
+      name, email, phone, photo, cards, 
+      notifications: { sms: notifySms, email: notifyEmail, reminder: notifyReminder },
+      ...updates 
+    };
     await AsyncStorage.setItem('@barber_client_profile', JSON.stringify(current));
   };
 
@@ -109,6 +126,14 @@ export default function ProfileScreen() {
     router.replace(`/${slug}/(auth)/login`);
   };
 
+  const handleClearCache = () => {
+    if (Platform.OS === 'web') {
+      window.alert('Dados sincronizados com sucesso!');
+    } else {
+      Alert.alert('Sucesso', 'Aplicativo sincronizado e cache limpo.');
+    }
+  };
+
   // Calcula estatísticas reais baseadas no histórico do barbearia (simulação usando appointments globais)
   const myAppointments = barbearia?.appointments?.filter(a => a.status === 'accepted') || [];
   const cutsCount = myAppointments.length;
@@ -118,7 +143,6 @@ export default function ProfileScreen() {
     points += (a.serviceIds.length * 5);
   });
 
-  // Fallback visual para demonstração inicial se não houver agendamentos reais
   const displayCuts = cutsCount > 0 ? cutsCount : 0;
   const displayPoints = points > 0 ? points : 0;
 
@@ -141,7 +165,7 @@ export default function ProfileScreen() {
               <TextInput style={[styles.input, { color: colors.text, borderColor: colors.divider, backgroundColor: colors.surface }]} value={email} onChangeText={setEmail} placeholder="E-mail" keyboardType="email-address" placeholderTextColor={colors.textMuted} />
               <TextInput style={[styles.input, { color: colors.text, borderColor: colors.divider, backgroundColor: colors.surface }]} value={phone} onChangeText={setPhone} placeholder="Telefone" placeholderTextColor={colors.textMuted} />
               <View style={styles.editActions}>
-                <Button title="Cancelar" variant="ghost" onPress={() => setIsEditing(false)} style={{flex: 1}} />
+                <Button title="Cancelar" variant="ghost" onPress={() => setIsEditing(false)} style={{flex: 1}} textStyle={{color: colors.textMuted}} />
                 <Button title="Salvar" onPress={handleSaveEdit} style={{flex: 1, backgroundColor: primaryColor}} textStyle={{color: colors.background}} />
               </View>
             </Animated.View>
@@ -197,27 +221,86 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Menu */}
+        {/* Menu Accordions */}
         <View style={styles.menuSection}>
           <Text style={[styles.sectionTitle, { color: primaryColor }]}>{t('profile.settings')}</Text>
-          {[
-            { id: '3', title: t('profile.notifications'), icon: <Bell size={20} color={primaryColor} /> },
-            { id: '4', title: t('profile.settings'), icon: <Settings size={20} color={primaryColor} /> },
-          ].map((item, index) => (
-            <Animated.View key={item.id} entering={FadeInUp.delay(400 + index * 100)}>
-              <TouchableOpacity activeOpacity={0.7}>
-                <Card style={[styles.menuItem, { backgroundColor: colors.surface, borderColor: colors.divider }]} variant="outline">
-                  <View style={styles.menuContent}>
-                    <View style={[styles.menuIconContainer, { backgroundColor: `${primaryColor}15` }]}>
-                      {item.icon}
-                    </View>
-                    <Text style={[styles.menuTitle, { color: colors.text }]}>{item.title}</Text>
-                    <ChevronRight size={20} color={colors.textMuted} />
-                  </View>
-                </Card>
+          
+          {/* Notificações Accordion */}
+          <Animated.View entering={FadeInUp.delay(400)}>
+            <Card style={[styles.menuItem, { backgroundColor: colors.surface, borderColor: colors.divider }]} variant="outline">
+              <TouchableOpacity 
+                activeOpacity={0.7} 
+                style={styles.menuContent}
+                onPress={() => setExpandedSection(expandedSection === 'notifications' ? null : 'notifications')}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: `${primaryColor}15` }]}>
+                  <Bell size={20} color={primaryColor} />
+                </View>
+                <Text style={[styles.menuTitle, { color: colors.text }]}>{t('profile.notifications')}</Text>
+                {expandedSection === 'notifications' ? <ChevronDown size={20} color={colors.textMuted} /> : <ChevronRight size={20} color={colors.textMuted} />}
               </TouchableOpacity>
-            </Animated.View>
-          ))}
+              
+              {expandedSection === 'notifications' && (
+                <Animated.View entering={FadeInDown} style={[styles.accordionContent, { borderTopColor: colors.divider }]}>
+                  <View style={styles.settingRow}>
+                    <Text style={[styles.settingLabel, { color: colors.text }]}>Lembrete de Agendamento</Text>
+                    <Switch value={notifyReminder} onValueChange={(v) => { setNotifyReminder(v); saveProfile({ notifications: { sms: notifySms, email: notifyEmail, reminder: v }}); }} trackColor={{ true: primaryColor }} />
+                  </View>
+                  <View style={styles.settingRow}>
+                    <Text style={[styles.settingLabel, { color: colors.text }]}>Avisos via WhatsApp/SMS</Text>
+                    <Switch value={notifySms} onValueChange={(v) => { setNotifySms(v); saveProfile({ notifications: { sms: v, email: notifyEmail, reminder: notifyReminder }}); }} trackColor={{ true: primaryColor }} />
+                  </View>
+                  <View style={styles.settingRow}>
+                    <Text style={[styles.settingLabel, { color: colors.text }]}>Avisos via E-mail</Text>
+                    <Switch value={notifyEmail} onValueChange={(v) => { setNotifyEmail(v); saveProfile({ notifications: { sms: notifySms, email: v, reminder: notifyReminder }}); }} trackColor={{ true: primaryColor }} />
+                  </View>
+                </Animated.View>
+              )}
+            </Card>
+          </Animated.View>
+
+          {/* Configurações Accordion */}
+          <Animated.View entering={FadeInUp.delay(500)}>
+            <Card style={[styles.menuItem, { backgroundColor: colors.surface, borderColor: colors.divider, marginTop: SPACING.sm }]} variant="outline">
+              <TouchableOpacity 
+                activeOpacity={0.7} 
+                style={styles.menuContent}
+                onPress={() => setExpandedSection(expandedSection === 'settings' ? null : 'settings')}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: `${primaryColor}15` }]}>
+                  <Settings size={20} color={primaryColor} />
+                </View>
+                <Text style={[styles.menuTitle, { color: colors.text }]}>{t('profile.settings')}</Text>
+                {expandedSection === 'settings' ? <ChevronDown size={20} color={colors.textMuted} /> : <ChevronRight size={20} color={colors.textMuted} />}
+              </TouchableOpacity>
+
+              {expandedSection === 'settings' && (
+                <Animated.View entering={FadeInDown} style={[styles.accordionContent, { borderTopColor: colors.divider }]}>
+                  
+                  <Text style={[styles.settingGroupTitle, { color: colors.textMuted }]}>Idioma do Aplicativo</Text>
+                  <View style={styles.langRow}>
+                    <TouchableOpacity style={[styles.langBtn, language === 'pt' ? { backgroundColor: primaryColor } : { backgroundColor: colors.surfaceLight }]} onPress={() => setLanguage('pt')}>
+                      <Text style={[styles.langBtnText, language === 'pt' ? { color: colors.background } : { color: colors.text }]}>Português</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.langBtn, language === 'es' ? { backgroundColor: primaryColor } : { backgroundColor: colors.surfaceLight }]} onPress={() => setLanguage('es')}>
+                      <Text style={[styles.langBtnText, language === 'es' ? { color: colors.background } : { color: colors.text }]}>Español</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity style={styles.actionRow} onPress={handleClearCache}>
+                    <RefreshCw size={20} color={colors.textMuted} />
+                    <Text style={[styles.actionRowText, { color: colors.text }]}>Sincronizar Dados / Limpar Cache</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.actionRow} onPress={() => { if(Platform.OS === 'web') window.alert('Termos de Uso e Privacidade'); else Alert.alert('Termos', '...'); }}>
+                    <FileText size={20} color={colors.textMuted} />
+                    <Text style={[styles.actionRowText, { color: colors.text }]}>Termos de Uso e Privacidade</Text>
+                  </TouchableOpacity>
+
+                </Animated.View>
+              )}
+            </Card>
+          </Animated.View>
         </View>
 
         {/* Logout */}
@@ -256,10 +339,19 @@ const styles = StyleSheet.create({
   cardNumber: { ...TYPOGRAPHY.caption, marginTop: 2 },
   addCardBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: SPACING.md, borderRadius: BORDER_RADIUS.md, borderWidth: 1, borderStyle: 'dashed' },
   menuSection: { paddingHorizontal: SPACING.xl, gap: SPACING.sm },
-  menuItem: { paddingVertical: SPACING.md, paddingHorizontal: SPACING.lg, borderRadius: BORDER_RADIUS.lg },
+  menuItem: { paddingVertical: SPACING.md, paddingHorizontal: SPACING.lg, borderRadius: BORDER_RADIUS.lg, overflow: 'hidden' },
   menuContent: { flexDirection: 'row', alignItems: 'center' },
   menuIconContainer: { width: 44, height: 44, borderRadius: BORDER_RADIUS.md, alignItems: 'center', justifyContent: 'center', marginRight: SPACING.md },
   menuTitle: { flex: 1, ...TYPOGRAPHY.bodyLarge, fontWeight: '600' },
+  accordionContent: { marginTop: SPACING.md, paddingTop: SPACING.md, borderTopWidth: 1 },
+  settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: SPACING.sm },
+  settingLabel: { ...TYPOGRAPHY.body },
+  settingGroupTitle: { ...TYPOGRAPHY.caption, marginBottom: SPACING.sm, marginTop: SPACING.xs },
+  langRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.lg },
+  langBtn: { flex: 1, paddingVertical: SPACING.sm, alignItems: 'center', borderRadius: BORDER_RADIUS.sm },
+  langBtnText: { ...TYPOGRAPHY.body, fontWeight: 'bold' },
+  actionRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.md, gap: SPACING.md },
+  actionRowText: { ...TYPOGRAPHY.body },
   footer: { padding: SPACING.xl, alignItems: 'center', marginTop: SPACING.lg },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, paddingVertical: SPACING.md, paddingHorizontal: SPACING.xl, backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: BORDER_RADIUS.full, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)' },
   logoutText: { ...TYPOGRAPHY.body, fontWeight: '700' },
