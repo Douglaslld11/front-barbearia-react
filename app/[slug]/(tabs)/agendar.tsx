@@ -283,18 +283,20 @@ export default function AgendarScreen() {
             <View style={styles.timeGrid}>
               {MORNING_TIMES.map((time) => {
                 const isBooked = barbearia?.appointments.some(a => a.date === format(selectedDate, 'dd/MM/yyyy') && a.time === time && a.barberId === selectedBarber && a.status !== 'rejected');
+                const isBlocked = barbearia?.blockedSlots?.some(s => s.date === format(selectedDate, 'dd/MM/yyyy') && s.time === time && s.barberId === selectedBarber);
+                const isUnavailable = isBooked || isBlocked;
                 return (
                   <Pressable 
                     key={time} 
-                    onPress={() => !isBooked && setSelectedTime(time)} 
+                    onPress={() => !isUnavailable && setSelectedTime(time)} 
                     style={[
                       styles.timeItem, 
                       { backgroundColor: colors.surface, borderColor: colors.divider },
                       selectedTime === time && { backgroundColor: colors.primary, borderColor: colors.primary },
-                      isBooked && { opacity: 0.3 }
+                      isUnavailable && { opacity: 0.3 }
                     ]}
                   >
-                    <Text style={[styles.timeText, { color: colors.text }, selectedTime === time && { color: colors.background }, isBooked && { textDecorationLine: 'line-through' }]}>
+                    <Text style={[styles.timeText, { color: colors.text }, selectedTime === time && { color: colors.background }, isUnavailable && { textDecorationLine: 'line-through' }]}>
                       {time}
                     </Text>
                   </Pressable>
@@ -306,18 +308,20 @@ export default function AgendarScreen() {
             <View style={styles.timeGrid}>
               {AFTERNOON_TIMES.map((time) => {
                 const isBooked = barbearia?.appointments.some(a => a.date === format(selectedDate, 'dd/MM/yyyy') && a.time === time && a.barberId === selectedBarber && a.status !== 'rejected');
+                const isBlocked = barbearia?.blockedSlots?.some(s => s.date === format(selectedDate, 'dd/MM/yyyy') && s.time === time && s.barberId === selectedBarber);
+                const isUnavailable = isBooked || isBlocked;
                 return (
                   <Pressable 
                     key={time} 
-                    onPress={() => !isBooked && setSelectedTime(time)} 
+                    onPress={() => !isUnavailable && setSelectedTime(time)} 
                     style={[
                       styles.timeItem, 
                       { backgroundColor: colors.surface, borderColor: colors.divider },
                       selectedTime === time && { backgroundColor: colors.primary, borderColor: colors.primary },
-                      isBooked && { opacity: 0.3 }
+                      isUnavailable && { opacity: 0.3 }
                     ]}
                   >
-                    <Text style={[styles.timeText, { color: colors.text }, selectedTime === time && { color: colors.background }, isBooked && { textDecorationLine: 'line-through' }]}>
+                    <Text style={[styles.timeText, { color: colors.text }, selectedTime === time && { color: colors.background }, isUnavailable && { textDecorationLine: 'line-through' }]}>
                       {time}
                     </Text>
                   </Pressable>

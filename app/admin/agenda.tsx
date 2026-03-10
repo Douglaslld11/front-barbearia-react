@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useBarbearia } from '../../stores/BarbeariaContext';
 import { useLanguage } from '../../stores/LanguageContext';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../../constants/theme';
 import { format, startOfToday, addDays } from 'date-fns';
 import { ptBR, es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Lock } from 'lucide-react-native';
 
 const ALL_TIMES = [
   '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -14,12 +14,13 @@ const ALL_TIMES = [
 ];
 
 export default function AdminAgenda() {
-  const { barbearia } = useBarbearia();
+  const { barbearia, toggleBlockedSlot } = useBarbearia();
   const { t, language } = useLanguage();
   const [selectedDate, setSelectedDate] = useState(startOfToday());
 
   const appointments = barbearia?.appointments || [];
   const barbers = barbearia?.barbers || [];
+  const blockedSlots = barbearia?.blockedSlots || [];
   const themeColors = barbearia?.colors || COLORS;
   const primaryColor = themeColors.primary;
 
@@ -28,6 +29,27 @@ export default function AdminAgenda() {
 
   const changeDate = (amount: number) => {
     setSelectedDate(prev => addDays(prev, amount));
+  };
+
+  const handleSlotPress = (barberId: string, time: string, isBlocked: boolean, hasAppointment: boolean) => {
+    if (hasAppointment) {
+      if (Platform.OS === 'web') window.alert('Horário ocupado por agendamento.');
+      return;
+    }
+    
+    if (Platform.OS === 'web') {
+      const confirmAction = window.confirm(isBlocked ? 'Desbloquear este horário?' : 'Bloquear este horário?');
+      if (confirmAction) toggleBlockedSlot(barberId, dateFormatted, time);
+    } else {
+      Alert.alert(
+        isBlocked ? 'Desbloquear Horário' : 'Bloquear Horário',
+        isBlocked ? 'Deseja abrir este horário para agendamentos?' : 'Deseja fechar este horário para agendamentos?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Confirmar', onPress: () => toggleBlockedSlot(barberId, dateFormatted, time) }
+        ]
+      );
+    }
   };
 
   return (
@@ -77,25 +99,34 @@ export default function AdminAgenda() {
                     a.barberId === barber.id &&
                     a.status !== 'rejected'
                   );
+                  
+                  const isBlocked = blockedSlots.some(s => s.barberId === barber.id && s.date === dateFormatted && s.time === time);
 
                   return (
-                    <View 
+                    <TouchableOpacity 
                       key={`${barber.id}-${time}`} 
+                      onPress={() => handleSlotPress(barber.id, time, isBlocked, !!appointment)}
+                      activeOpacity={0.7}
                       style={[
                         styles.cell, 
                         styles.barberColumn,
                         { borderColor: themeColors.divider },
-                        appointment ? (appointment.status === 'accepted' ? styles.busyCell : styles.pendingCell) : styles.freeCell
+                        appointment ? (appointment.status === 'accepted' ? styles.busyCell : styles.pendingCell) : (isBlocked ? styles.blockedCell : styles.freeCell)
                       ]}
                     >
                       {appointment ? (
                         <Text style={[styles.appointmentText, { color: themeColors.text }]} numberOfLines={1}>
                           {appointment.clientName}
                         </Text>
+                      ) : isBlocked ? (
+                        <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+                           <Lock size={12} color={themeColors.textMuted} />
+                           <Text style={[styles.freeText, { color: themeColors.textMuted }]}>Bloqueado</Text>
+                        </View>
                       ) : (
                         <Text style={[styles.freeText, { color: themeColors.textMuted }]}>{t('admin.agenda.free')}</Text>
                       )}
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
               </View>
@@ -112,6 +143,10 @@ export default function AdminAgenda() {
         <View style={styles.legendItem}>
           <View style={[styles.dot, { backgroundColor: '#EAB308' }]} />
           <Text style={[styles.legendText, { color: themeColors.textMuted }]}>{t('admin.dashboard.pending_badge') || 'Pendente'}</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.dot, { backgroundColor: COLORS.secondary }]} />
+          <Text style={[styles.legendText, { color: themeColors.textMuted }]}>Bloqueado</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.dot, { backgroundColor: themeColors.surfaceLight }]} />
@@ -147,6 +182,7 @@ const styles = StyleSheet.create({
   headerText: { color: COLORS.primary, ...TYPOGRAPHY.caption, fontWeight: '800' },
   timeText: { color: COLORS.text, ...TYPOGRAPHY.bodySmall, fontWeight: '700' },
   freeCell: { backgroundColor: 'rgba(255,255,255,0.02)', borderStyle: 'dashed', borderWidth: 1, borderColor: COLORS.divider },
+  blockedCell: { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderWidth: 1, borderColor: COLORS.divider, borderStyle: 'dashed' },
   busyCell: { backgroundColor: `${COLORS.success}20`, borderWidth: 1, borderColor: `${COLORS.success}40` },
   pendingCell: { backgroundColor: 'rgba(234, 179, 8, 0.2)', borderWidth: 1, borderColor: 'rgba(234, 179, 8, 0.4)' },
   appointmentText: { color: COLORS.text, ...TYPOGRAPHY.caption, fontWeight: 'bold' },
