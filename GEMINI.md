@@ -11,21 +11,30 @@ Este documento serve como a fonte da verdade para a arquitetura, estrutura e reg
 - **Mídia:** `expo-image-picker` (Imagens convertidas em Base64 para armazenamento)
 
 ## 📁 Estrutura de Diretórios (`app/`)
-O projeto utiliza um roteamento baseado no file-system do Expo Router, rigidamente dividido em duas áreas principais após a seleção global de idioma.
+O projeto utiliza um roteamento baseado no file-system do Expo Router, rigidamente dividido em duas áreas principais após a seleção global de idioma e fluxos de autenticação.
 
-- `app/index.tsx`: **Raiz Absoluta**. A primeira tela do app. Força a escolha do idioma (PT/ES) antes de qualquer outra navegação e persiste via `LanguageContext`. Redireciona para `/landing`.
+- `app/index.tsx`: **Raiz Absoluta**. A primeira tela do app. Redireciona para `/landing`.
 - `app/landing.tsx`: Landing page comercial do SaaS. Contém botões para acessar a "Área Admin" ou "Ver Demonstração" (Área do Cliente).
 - `app/admin/`: **Área Administrativa (O Painel do Barbeiro)**
   - `_layout.tsx`: Define o Stack protegido do Admin.
-  - `login.tsx`: Tela de autenticação.
+  - `login.tsx`: Tela de autenticação para donos/barbeiros.
+  - `register.tsx`: Tela de criação de conta (BarberFlow Pro).
+  - `forgot-password.tsx`: Tela de recuperação de senha.
   - `dashboard.tsx`: Visão geral de agendamentos pendentes e confirmados. Permite aceitar, recusar ou cancelar.
   - `agenda.tsx`: Tabela visual (Daily Schedule) mostrando os horários de todos os barbeiros e seus status (Livre, Pendente, Confirmado).
   - `config.tsx`: **Wizard de 6 Passos** para configurar a barbearia (Identidade, Localização, Serviços, Barbeiros, Formas de Pagamento, Link Final).
 - `app/[slug]/`: **Área do Cliente (Multi-Tenant)**
-  - `index.tsx`: Tela inicial do link do cliente. O cliente escolhe o idioma e a moeda que prefere ser atendido.
-  - `(auth)/login.tsx`: Login do cliente (simulado). Redireciona para o agendamento.
-  - `(tabs)/agendar.tsx`: O core do lado do cliente. Fluxo de 3 passos: Escolher Serviço/Barbeiro -> Escolher Data/Hora -> Pagamento & Confirmação.
-  - `(tabs)/profile.tsx`: Perfil do cliente com histórico.
+  - `_layout.tsx`: Provedor de contexto específico do tenant (barbearia).
+  - `index.tsx`: Tela inicial de redirecionamento do tenant para o fluxo de idioma/auth.
+  - `(auth)/`: **Autenticação e Pré-requisitos do Cliente**
+    - `language-selection.tsx`: O cliente escolhe o idioma (PT/ES) e a moeda (R$/GS) que prefere ser atendido.
+    - `login.tsx`: Tela de login do cliente. Redireciona para o agendamento após sucesso.
+    - `register.tsx`: Tela de cadastro do cliente.
+    - `forgot-password.tsx`: Tela de recuperação de senha.
+  - `(tabs)/`: **Área Interna do Cliente**
+    - `_layout.tsx`: Tab bar com as opções principais.
+    - `agendar.tsx`: O core do lado do cliente. Fluxo de 3 passos: Escolher Serviço/Barbeiro -> Escolher Data/Hora -> Pagamento & Confirmação.
+    - `profile.tsx`: Perfil do cliente com histórico.
 
 ## 🧠 Gerenciamento de Estado (Contextos)
 
@@ -49,7 +58,7 @@ Coração do sistema i18n e regras de moeda.
 
 1. **Separação Admin vs Cliente:**
    - Admin acessa via `/admin/login`. Visualiza todas as configurações e aprova agendamentos.
-   - Cliente acessa via `/[slug]/agendar` (onde `[slug]` é o nome da barbearia, ex: `vintage-barber`).
+   - Cliente acessa via `/[slug]` (onde `[slug]` é o nome da barbearia, ex: `vintage-barber`), passa pela seleção de idioma e fluxo de autenticação (login/registro) em `/[slug]/(auth)` e então acessa a área logada em `/[slug]/(tabs)`.
 
 2. **Fluxo de Agendamento:**
    - **Prevenção de Conflitos:** Na tela `agendar.tsx`, horários que já existem no array `appointments` com status diferente de `rejected` para aquele barbeiro específico, são desabilitados (linha riscada e opacidade baixa) para evitar double-booking.

@@ -26,33 +26,33 @@ export default function LandingPage() {
   const features = [
     {
       icon: <Layout color={COLORS.primary} size={28} />,
-      title: 'Sistema Multi-Tenant',
-      desc: 'Link exclusivo para sua barbearia (ex: app.com/sua-marca) sem concorrência.'
+      title: t('landing.feature1.title'),
+      desc: t('landing.feature1.desc')
     },
     {
       icon: <Palette color={COLORS.primary} size={28} />,
-      title: 'Personalização de Cores',
-      desc: 'Deixe o aplicativo do cliente com as cores e a logomarca exatas da sua empresa.'
+      title: t('landing.feature2.title'),
+      desc: t('landing.feature2.desc')
     },
     {
       icon: <CreditCard color={COLORS.primary} size={28} />,
-      title: 'Moeda Dupla e Pagamentos',
-      desc: 'Suporte automático para Real (R$) e Guarani (GS), além de PIX, Cartão e Alias.'
+      title: t('landing.feature3.title'),
+      desc: t('landing.feature3.desc')
     },
     {
       icon: <MessageCircle color={COLORS.primary} size={28} />,
-      title: 'Avisos Automáticos',
-      desc: 'Notificações e lembretes para os clientes via WhatsApp, SMS e E-mail.'
+      title: t('landing.feature4.title'),
+      desc: t('landing.feature4.desc')
     },
     {
       icon: <Calendar color={COLORS.primary} size={28} />,
-      title: 'Agenda Inteligente',
-      desc: 'Gestão completa com a possibilidade de bloquear e liberar horários em massa.'
+      title: t('landing.feature5.title'),
+      desc: t('landing.feature5.desc')
     },
     {
       icon: <Smartphone color={COLORS.primary} size={28} />,
-      title: 'Experiência App Nativo',
-      desc: 'Rápido, fluido e sem necessidade de baixar nada na loja de aplicativos.'
+      title: t('landing.feature6.title'),
+      desc: t('landing.feature6.desc')
     }
   ];
 
@@ -67,7 +67,7 @@ export default function LandingPage() {
           </View>
           <Text style={styles.heroTitle}>BarberFlow <Text style={styles.highlight}>Pro</Text></Text>
           <Text style={styles.heroSubtitle}>
-            Transforme o atendimento da sua barbearia com o sistema de agendamento mais completo e adaptável do mercado.
+            {t('landing.subtitle')}
           </Text>
           
           <View style={styles.buttonContainer}>
@@ -107,7 +107,7 @@ export default function LandingPage() {
 
         {/* Footer */}
         <Animated.View entering={FadeInUp.delay(1000)} style={styles.footer}>
-          <Text style={styles.footerText}>© 2026 BarberFlow Pro. Sistema SaaS Multi-Tenant.</Text>
+          <Text style={styles.footerText}>{t('landing.footer')}</Text>
         </Animated.View>
 
       </ScrollView>
@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 100,
   },
   hero: {
     paddingHorizontal: SPACING.xl,

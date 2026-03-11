@@ -106,7 +106,7 @@ export default function AdminAgenda() {
             ))}
           </View>
 
-          <ScrollView style={styles.tableBody} showsVerticalScrollIndicator={false}>
+          <ScrollView style={styles.tableBody} contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
             {ALL_TIMES.map(time => (
               <View key={time} style={styles.tableRow}>
                 <View style={[styles.cell, styles.timeColumn, { backgroundColor: themeColors.surfaceLight }]}>
