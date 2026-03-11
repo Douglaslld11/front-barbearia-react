@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../constants/theme';
@@ -9,11 +9,10 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
-const isMobile = width < 768;
-
 export default function LandingPage() {
   const { t } = useLanguage();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   const handleViewDemo = () => {
     router.push('/vintage-barber');
@@ -61,12 +60,12 @@ export default function LandingPage() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         {/* Hero Section */}
-        <Animated.View entering={FadeInDown.duration(800).springify()} style={styles.hero}>
+        <Animated.View entering={FadeInDown.duration(800).springify()} style={[styles.hero, isMobile && styles.heroMobile]}>
           <View style={styles.heroLogo}>
             <Scissors color={COLORS.background} size={40} />
           </View>
-          <Text style={styles.heroTitle}>BarberFlow <Text style={styles.highlight}>Pro</Text></Text>
-          <Text style={styles.heroSubtitle}>
+          <Text style={[styles.heroTitle, isMobile && styles.heroTitleMobile]}>BarberFlow <Text style={styles.highlight}>Pro</Text></Text>
+          <Text style={[styles.heroSubtitle, isMobile && styles.heroSubtitleMobile]}>
             {t('landing.subtitle')}
           </Text>
           
@@ -88,18 +87,18 @@ export default function LandingPage() {
 
         {/* Features */}
         <View style={styles.section}>
-          <Animated.Text entering={FadeInUp.delay(300).duration(600)} style={styles.sectionTitle}>
+          <Animated.Text entering={FadeInUp.delay(300).duration(600)} style={[styles.sectionTitle, isMobile && styles.sectionTitleMobile]}>
             {t('landing.why') || "Tudo que sua barbearia precisa"}
           </Animated.Text>
           
-          <View style={styles.grid}>
+          <View style={[styles.grid, isMobile && styles.gridMobile]}>
             {features.map((item, index) => (
-              <Card key={index} animated delay={400 + (index * 100)} style={styles.featureCard}>
+              <Card key={index} animated delay={400 + (index * 100)} style={[styles.featureCard, isMobile && styles.featureCardMobile]}>
                 <View style={styles.iconBox}>
                   {item.icon}
                 </View>
-                <Text style={styles.featureTitle}>{item.title}</Text>
-                <Text style={styles.featureDescription}>{item.desc}</Text>
+                <Text style={[styles.featureTitle, isMobile && styles.textCenter]}>{item.title}</Text>
+                <Text style={[styles.featureDescription, isMobile && styles.textCenter]}>{item.desc}</Text>
               </Card>
             ))}
           </View>
@@ -126,13 +125,16 @@ const styles = StyleSheet.create({
   },
   hero: {
     paddingHorizontal: SPACING.xl,
-    paddingTop: isMobile ? SPACING.xxl : 80,
+    paddingTop: 80,
     paddingBottom: SPACING.xxxl,
     alignItems: 'center',
     backgroundColor: COLORS.surface,
     borderBottomLeftRadius: BORDER_RADIUS.xl * 2,
     borderBottomRightRadius: BORDER_RADIUS.xl * 2,
     ...(SHADOWS.large as any),
+  },
+  heroMobile: {
+    paddingTop: SPACING.xxl,
   },
   heroLogo: {
     width: 80,
@@ -149,7 +151,10 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.md,
     textAlign: 'center',
-    fontSize: isMobile ? 32 : 48,
+    fontSize: 48,
+  },
+  heroTitleMobile: {
+    fontSize: 32,
   },
   highlight: {
     color: COLORS.primary,
@@ -160,18 +165,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: SPACING.xl,
     maxWidth: 600,
-    paddingHorizontal: isMobile ? SPACING.sm : 0,
+  },
+  heroSubtitleMobile: {
+    paddingHorizontal: SPACING.sm,
   },
   buttonContainer: {
     width: '100%',
     maxWidth: 400,
     gap: SPACING.md,
+    paddingHorizontal: SPACING.md,
   },
   ctaButton: {
     width: '100%',
   },
   section: {
     padding: SPACING.lg,
+    paddingHorizontal: 16, // px-4
     paddingTop: SPACING.xxxl,
     alignItems: 'center',
   },
@@ -180,7 +189,10 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.xxl,
     textAlign: 'center',
-    fontSize: isMobile ? 24 : 32,
+    fontSize: 32,
+  },
+  sectionTitleMobile: {
+    fontSize: 24,
   },
   grid: {
     width: '100%',
@@ -190,11 +202,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: SPACING.lg,
   },
+  gridMobile: {
+    flexDirection: 'column', // flex-col para mobile
+    alignItems: 'center',
+  },
   featureCard: {
-    width: isMobile ? '100%' : '30%',
-    minWidth: isMobile ? 'auto' : 280,
+    width: '30%',
+    minWidth: 280,
     padding: SPACING.xl,
     alignItems: 'flex-start',
+  },
+  featureCardMobile: {
+    width: '100%', // w-full
+    minWidth: '100%', // overwrite minWidth on mobile
+    alignItems: 'center', // centralizar os itens (ícone, título, etc) no mobile
+  },
+  textCenter: {
+    textAlign: 'center',
   },
   iconBox: {
     width: 56,
@@ -209,12 +233,12 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.h3,
     color: COLORS.text,
     marginBottom: SPACING.sm,
-    fontSize: isMobile ? 18 : 20,
+    fontSize: 20,
   },
   featureDescription: {
     ...TYPOGRAPHY.body,
     color: COLORS.textMuted,
-    fontSize: isMobile ? 14 : 16,
+    fontSize: 16,
   },
   footer: {
     padding: SPACING.xl,

@@ -8,7 +8,8 @@ import {
   Platform, 
   Alert,
   TouchableOpacity,
-  Pressable
+  Pressable,
+  useWindowDimensions
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -21,6 +22,8 @@ import * as Haptics from 'expo-haptics';
 
 export default function AdminLogin() {
   const { t } = useLanguage();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +60,7 @@ export default function AdminLogin() {
         <Text style={styles.backText}>{t('admin.config.back')}</Text>
       </TouchableOpacity>
 
-      <View style={styles.content}>
+      <View style={[styles.content, isMobile && { paddingHorizontal: 16 }]}>
         <Animated.View entering={FadeInDown.duration(600)} style={styles.logoContainer}>
           <View style={styles.logoCircle}>
             <Scissors color={COLORS.primary} size={40} />
