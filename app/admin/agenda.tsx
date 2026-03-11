@@ -106,7 +106,7 @@ export default function AdminAgenda() {
             ))}
           </View>
 
-          <ScrollView style={styles.tableBody} contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
+          <ScrollView style={styles.tableBody} contentContainerStyle={{ paddingBottom: 280 }} showsVerticalScrollIndicator={false}>
             {ALL_TIMES.map(time => (
               <View key={time} style={styles.tableRow}>
                 <View style={[styles.cell, styles.timeColumn, { backgroundColor: themeColors.surfaceLight }]}>
@@ -171,7 +171,7 @@ export default function AdminAgenda() {
         <Animated.View entering={SlideInDown} exiting={SlideOutDown} style={[styles.actionBar, { backgroundColor: themeColors.surface, borderTopColor: primaryColor }]}>
           <View style={styles.actionBarInfo}>
             <Text style={[styles.actionBarText, { color: themeColors.text }]}>
-              {selectedSlots.length} horário{selectedSlots.length > 1 ? 's' : ''} selecionado{selectedSlots.length > 1 ? 's' : ''}
+              {`${selectedSlots.length} horário${selectedSlots.length > 1 ? 's' : ''} selecionado${selectedSlots.length > 1 ? 's' : ''}`}
             </Text>
             <TouchableOpacity onPress={() => setSelectedSlots([])} style={styles.clearBtn}>
               <X size={20} color={themeColors.textMuted} />

@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     width: isMobile ? '100%' : '30%',
-    minWidth: isMobile ? '100%' : 280,
+    minWidth: isMobile ? 'auto' : 280,
     padding: SPACING.xl,
     alignItems: 'flex-start',
   },

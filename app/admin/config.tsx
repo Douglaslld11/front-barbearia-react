@@ -211,13 +211,13 @@ export default function ConfigPage() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={[styles.stepTitle, { color: primaryColor }]}>
-          {currentStep === 1 && t('admin.config.identity')}
-          {currentStep === 2 && t('admin.config.location')}
-          {currentStep === 3 && t('admin.config.services')}
-          {currentStep === 4 && t('admin.config.barbers')}
-          {currentStep === 5 && (t('admin.config.payments') || 'Formas de Recebimento')}
-          {currentStep === 6 && (t('admin.config.colors') || 'Cores do App')}
-          {currentStep === 7 && t('admin.config.ready')}
+          {currentStep === 1 ? t('admin.config.identity') :
+           currentStep === 2 ? t('admin.config.location') :
+           currentStep === 3 ? t('admin.config.services') :
+           currentStep === 4 ? t('admin.config.barbers') :
+           currentStep === 5 ? (t('admin.config.payments') || 'Formas de Recebimento') :
+           currentStep === 6 ? (t('admin.config.colors') || 'Cores do App') :
+           t('admin.config.ready')}
         </Text>
 
         {currentStep === 1 && (
@@ -274,7 +274,7 @@ export default function ConfigPage() {
                   <View style={{flex:1}}>
                     <Text style={[styles.itemName, { color: themeColors.text }]}>{language === 'pt' ? service.nomePt : service.nomeEs}</Text>
                     <Text style={[styles.itemMeta, { color: themeColors.textMuted }]}>
-                      {formatPrice(service.precoPt, service.precoEs)} • {service.duracao} min
+                      {`${formatPrice(service.precoPt, service.precoEs)} • ${service.duracao} min`}
                     </Text>
                   </View>
                   <TouchableOpacity onPress={() => removeService(service.id)} style={styles.deleteBtn}>
@@ -416,7 +416,7 @@ export default function ConfigPage() {
             
             <TouchableOpacity style={[styles.linkCard, { backgroundColor: themeColors.surface, borderColor: primaryColor }]} onPress={handleViewApp}>
                <Globe color={primaryColor} size={24} />
-               <Text style={[styles.linkText, { color: primaryColor }]}>{window.location.origin}/{slug}</Text>
+               <Text style={[styles.linkText, { color: primaryColor }]}>{`${window.location.origin}/${slug}`}</Text>
             </TouchableOpacity>
 
             <Button title="Dashboard" onPress={() => router.replace('/admin/dashboard')} style={{width: '100%', marginTop: 40, backgroundColor: primaryColor}} textStyle={{color: themeColors.background}} />
