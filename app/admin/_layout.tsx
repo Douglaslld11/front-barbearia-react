@@ -28,6 +28,13 @@ export default function AdminLayout() {
         }} 
       />
       <Stack.Screen 
+        name="barber-login" 
+        options={{ 
+          title: 'Área do Barbeiro',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
         name="dashboard" 
         options={{ 
           title: 'Dashboard',

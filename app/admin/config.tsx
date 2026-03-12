@@ -76,6 +76,10 @@ export default function ConfigPage() {
   const [newBarberName, setNewBarberName] = useState('');
   const [newBarberPhoto, setNewBarberPhoto] = useState('');
   const [newBarberCommission, setNewBarberCommission] = useState('50');
+  const [newBarberEmail, setNewBarberEmail] = useState('');
+  const [newBarberPassword, setNewBarberPassword] = useState('');
+  const [canViewFinance, setCanViewFinance] = useState(false);
+  const [canEditConfig, setCanEditConfig] = useState(false);
 
   useEffect(() => {
     if (barbearia) {
@@ -165,8 +169,8 @@ export default function ConfigPage() {
   };
 
   const handleAddBarber = async () => {
-    if (!newBarberName || !newBarberCommission) {
-        if(Platform.OS === 'web') window.alert('Preencha o nome e a comissão');
+    if (!newBarberName || !newBarberCommission || !newBarberEmail || !newBarberPassword) {
+        if(Platform.OS === 'web') window.alert('Preencha nome, e-mail, senha e comissão');
         return;
     }
     try {
@@ -174,10 +178,21 @@ export default function ConfigPage() {
         nome: newBarberName,
         foto: newBarberPhoto || 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?w=400',
         commission: Number(newBarberCommission) || 0,
+        email: newBarberEmail,
+        password: newBarberPassword,
+        permissions: {
+          canViewFinance,
+          canEditConfig,
+          canEditAgenda: true
+        }
       });
       setNewBarberName('');
       setNewBarberPhoto('');
       setNewBarberCommission('50');
+      setNewBarberEmail('');
+      setNewBarberPassword('');
+      setCanViewFinance(false);
+      setCanEditConfig(false);
     } catch (err) {
       console.error(err);
     }
@@ -324,7 +339,25 @@ export default function ConfigPage() {
               <View style={[styles.addBox, { backgroundColor: `${primaryColor}10`, borderColor: primaryColor }]}>
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberName} onChangeText={setNewBarberName} placeholder="Nome do Barbeiro" placeholderTextColor={themeColors.textMuted} />
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberCommission} onChangeText={setNewBarberCommission} placeholder="% de Comissão (Ex: 50)" keyboardType="numeric" placeholderTextColor={themeColors.textMuted} />
+                <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberEmail} onChangeText={setNewBarberEmail} placeholder="E-mail de Login" keyboardType="email-address" autoCapitalize="none" placeholderTextColor={themeColors.textMuted} />
+                <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberPassword} onChangeText={setNewBarberPassword} placeholder="Senha de Acesso" secureTextEntry placeholderTextColor={themeColors.textMuted} />
                 
+                <Text style={[styles.label, {marginTop: 10, color: themeColors.textMuted}]}>Permissões Extras (Além da Agenda):</Text>
+                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 15, flexWrap: 'wrap' }}>
+                  <TouchableOpacity 
+                    style={[styles.permissionBtn, canViewFinance && { backgroundColor: primaryColor, borderColor: primaryColor }]} 
+                    onPress={() => setCanViewFinance(!canViewFinance)}
+                  >
+                    <Text style={[styles.permissionText, canViewFinance && { color: themeColors.background }]}>Ver Financeiro</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.permissionBtn, canEditConfig && { backgroundColor: primaryColor, borderColor: primaryColor }]} 
+                    onPress={() => setCanEditConfig(!canEditConfig)}
+                  >
+                    <Text style={[styles.permissionText, canEditConfig && { color: themeColors.background }]}>Alterar Configurações</Text>
+                  </TouchableOpacity>
+                </View>
+
                 <Text style={[styles.label, {marginTop: 10, color: themeColors.textMuted}]}>Foto do Barbeiro</Text>
                 <TouchableOpacity style={[styles.imagePickerSmall, { backgroundColor: themeColors.surface, borderColor: themeColors.divider }]} onPress={() => pickImage(setNewBarberPhoto)}>
                   {newBarberPhoto ? (
@@ -485,6 +518,8 @@ const styles = StyleSheet.create({
   pickedAvatar: { width: '100%', height: '100%' },
   imagePlaceholderSmall: { alignItems: 'center', gap: 4 },
   imagePlaceholderTextSmall: { fontSize: 10, textAlign: 'center' },
+  permissionBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: BORDER_RADIUS.sm, borderWidth: 1, borderColor: COLORS.textMuted },
+  permissionText: { ...TYPOGRAPHY.caption, color: COLORS.textMuted },
   addBox: { marginTop: 20, padding: 15, borderRadius: BORDER_RADIUS.lg, borderStyle: 'dashed', borderWidth: 1 },
   listItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1 },
   itemName: { ...TYPOGRAPHY.body, fontWeight: '700' },

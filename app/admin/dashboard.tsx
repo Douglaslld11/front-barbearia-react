@@ -9,13 +9,18 @@ import { Check, X, Calendar, Clock, User, Scissors, Settings, DollarSign } from 
 import { router } from 'expo-router';
 
 export default function AdminDashboard() {
-  const { barbearia, updateAppointmentStatus } = useBarbearia();
+  const { barbearia, updateAppointmentStatus, activeBarberId } = useBarbearia();
   const { language, t, formatPrice } = useLanguage();
   const appointments = barbearia?.appointments || [];
   
   // Use theme colors
   const themeColors = barbearia?.colors || COLORS;
   const primaryColor = themeColors.primary;
+
+  const activeBarber = barbearia?.barbers?.find(b => b.id === activeBarberId);
+  const isOwner = !activeBarberId;
+  const canViewFinance = isOwner || activeBarber?.permissions?.canViewFinance;
+  const canEditConfig = isOwner || activeBarber?.permissions?.canEditConfig;
 
   const pending = appointments.filter(a => a.status === 'pending');
   const accepted = appointments.filter(a => a.status === 'accepted');
@@ -119,15 +124,19 @@ export default function AdminDashboard() {
           <Text style={[styles.subtitle, { color: themeColors.textMuted }]} numberOfLines={1}>{t('admin.dashboard.pending', { count: pending.length })}</Text>
         </View>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={[styles.iconButton, { backgroundColor: `${primaryColor}15` }]} onPress={() => router.push('/admin/finance')}>
-            <DollarSign color={primaryColor} size={20} />
-          </TouchableOpacity>
+          {canViewFinance && (
+            <TouchableOpacity style={[styles.iconButton, { backgroundColor: `${primaryColor}15` }]} onPress={() => router.push('/admin/finance')}>
+              <DollarSign color={primaryColor} size={20} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={[styles.iconButton, { backgroundColor: `${primaryColor}15` }]} onPress={() => router.push('/admin/agenda')}>
             <Calendar color={primaryColor} size={20} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.iconButton, { backgroundColor: `${primaryColor}15` }]} onPress={() => router.push('/admin/config')}>
-            <Settings color={primaryColor} size={20} />
-          </TouchableOpacity>
+          {canEditConfig && (
+            <TouchableOpacity style={[styles.iconButton, { backgroundColor: `${primaryColor}15` }]} onPress={() => router.push('/admin/config')}>
+              <Settings color={primaryColor} size={20} />
+            </TouchableOpacity>
+          )}
         </View>
       </Animated.View>
 

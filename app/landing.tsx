@@ -77,9 +77,15 @@ export default function LandingPage() {
               textStyle={{ color: COLORS.background }}
             />
             <Button 
-              title={t('landing.admin') || "Painel do Barbeiro"} 
+              title={t('landing.admin') || "Painel do Dono"} 
               variant="outline" 
               onPress={handleAdmin} 
+              style={styles.ctaButton}
+            />
+            <Button 
+              title="Área do Barbeiro" 
+              variant="ghost" 
+              onPress={() => router.push('/admin/barber-login')} 
               style={styles.ctaButton}
             />
           </View>

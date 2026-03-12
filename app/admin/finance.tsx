@@ -9,7 +9,7 @@ import { ChevronLeft, DollarSign, Calendar, TrendingUp, Scissors } from 'lucide-
 import { router } from 'expo-router';
 
 export default function AdminFinance() {
-  const { barbearia } = useBarbearia();
+  const { barbearia, activeBarberId } = useBarbearia();
   const { language, formatPrice, t } = useLanguage();
   
   const themeColors = barbearia?.colors || COLORS;
@@ -20,15 +20,24 @@ export default function AdminFinance() {
   const appointments = barbearia?.appointments || [];
   const acceptedAppointments = appointments.filter(a => a.status === 'accepted');
 
+  const isOwner = !activeBarberId;
+
   // Simplificação para o escopo atual: consideramos todos os finalizados. 
   // Numa implementação com banco de dados real, aqui faríamos um filtro pelas datas (hoje, semana, mês).
-  const filteredAppointments = acceptedAppointments; 
+  // Se for dono, vê tudo. Se for barbeiro, vê apenas os dele.
+  const filteredAppointments = isOwner 
+    ? acceptedAppointments 
+    : acceptedAppointments.filter(a => a.barberId === activeBarberId);
 
   const totalRevenuePt = filteredAppointments.reduce((acc, curr) => acc + curr.totalPt, 0);
   const totalRevenueEs = filteredAppointments.reduce((acc, curr) => acc + curr.totalEs, 0);
   const totalCortes = filteredAppointments.length;
 
-  const barbersStats = barbearia?.barbers.map(barber => {
+  const barbersToRender = isOwner 
+    ? barbearia?.barbers || [] 
+    : barbearia?.barbers.filter(b => b.id === activeBarberId) || [];
+
+  const barbersStats = barbersToRender.map(barber => {
     const barberAppointments = filteredAppointments.filter(a => a.barberId === barber.id);
     const revenuePt = barberAppointments.reduce((acc, curr) => acc + curr.totalPt, 0);
     const revenueEs = barberAppointments.reduce((acc, curr) => acc + curr.totalEs, 0);
@@ -47,7 +56,7 @@ export default function AdminFinance() {
       commissionEs,
       commissionRate: barber.commission || 50
     };
-  }) || [];
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
