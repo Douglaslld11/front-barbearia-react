@@ -5,7 +5,7 @@ import { useBarbearia, Appointment } from '../../stores/BarbeariaContext';
 import { useLanguage } from '../../stores/LanguageContext';
 import { Card } from '../../components/ui/Card';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../../constants/theme';
-import { Check, X, Calendar, Clock, User, Scissors, Settings } from 'lucide-react-native';
+import { Check, X, Calendar, Clock, User, Scissors, Settings, DollarSign } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 export default function AdminDashboard() {
@@ -119,6 +119,9 @@ export default function AdminDashboard() {
           <Text style={[styles.subtitle, { color: themeColors.textMuted }]} numberOfLines={1}>{t('admin.dashboard.pending', { count: pending.length })}</Text>
         </View>
         <View style={styles.headerActions}>
+          <TouchableOpacity style={[styles.iconButton, { backgroundColor: `${primaryColor}15` }]} onPress={() => router.push('/admin/finance')}>
+            <DollarSign color={primaryColor} size={20} />
+          </TouchableOpacity>
           <TouchableOpacity style={[styles.iconButton, { backgroundColor: `${primaryColor}15` }]} onPress={() => router.push('/admin/agenda')}>
             <Calendar color={primaryColor} size={20} />
           </TouchableOpacity>

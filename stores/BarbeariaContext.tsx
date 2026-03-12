@@ -15,6 +15,7 @@ export interface Barber {
   id: string;
   nome: string;
   foto: string;
+  commission: number;
 }
 
 export interface Appointment {
@@ -128,7 +129,7 @@ export function BarbeariaProvider({ children }: { children: ReactNode }) {
               { id: '3', nomePt: 'Combo (Corte + Barba)', nomeEs: 'Combo (Corte + Barba)', precoPt: 75, precoEs: 100000, duracao: 50 },
             ],
             barbers: [
-              { id: '1', nome: 'Marcus Silva', foto: 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?w=400' },
+              { id: '1', nome: 'Marcus Silva', foto: 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?w=400', commission: 50 },
             ],
             appointments: [],
             paymentMethods: ['money', 'pix', 'card', 'alias'],

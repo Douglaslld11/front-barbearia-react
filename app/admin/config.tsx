@@ -75,6 +75,7 @@ export default function ConfigPage() {
   // Novo barbeiro estado
   const [newBarberName, setNewBarberName] = useState('');
   const [newBarberPhoto, setNewBarberPhoto] = useState('');
+  const [newBarberCommission, setNewBarberCommission] = useState('50');
 
   useEffect(() => {
     if (barbearia) {
@@ -164,14 +165,19 @@ export default function ConfigPage() {
   };
 
   const handleAddBarber = async () => {
-    if (!newBarberName) return;
+    if (!newBarberName || !newBarberCommission) {
+        if(Platform.OS === 'web') window.alert('Preencha o nome e a comissão');
+        return;
+    }
     try {
       await addBarber({
         nome: newBarberName,
         foto: newBarberPhoto || 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?w=400',
+        commission: Number(newBarberCommission) || 0,
       });
       setNewBarberName('');
       setNewBarberPhoto('');
+      setNewBarberCommission('50');
     } catch (err) {
       console.error(err);
     }
@@ -306,6 +312,7 @@ export default function ConfigPage() {
                     <Image source={{ uri: barber.foto }} style={styles.avatar} />
                     <View style={{flex:1, marginLeft: 12}}>
                       <Text style={[styles.itemName, { color: themeColors.text }]}>{barber.nome}</Text>
+                      <Text style={[styles.itemMeta, { color: themeColors.textMuted }]}>{`${barber.commission}% de Comissão`}</Text>
                     </View>
                     <TouchableOpacity onPress={() => removeBarber(barber.id)} style={styles.deleteBtn}>
                       <Trash2 color="#FF4444" size={20} />
@@ -316,6 +323,7 @@ export default function ConfigPage() {
 
               <View style={[styles.addBox, { backgroundColor: `${primaryColor}10`, borderColor: primaryColor }]}>
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberName} onChangeText={setNewBarberName} placeholder="Nome do Barbeiro" placeholderTextColor={themeColors.textMuted} />
+                <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberCommission} onChangeText={setNewBarberCommission} placeholder="% de Comissão (Ex: 50)" keyboardType="numeric" placeholderTextColor={themeColors.textMuted} />
                 
                 <Text style={[styles.label, {marginTop: 10, color: themeColors.textMuted}]}>Foto do Barbeiro</Text>
                 <TouchableOpacity style={[styles.imagePickerSmall, { backgroundColor: themeColors.surface, borderColor: themeColors.divider }]} onPress={() => pickImage(setNewBarberPhoto)}>

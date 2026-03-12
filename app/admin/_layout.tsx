@@ -42,6 +42,13 @@ export default function AdminLayout() {
         }} 
       />
       <Stack.Screen 
+        name="finance" 
+        options={{ 
+          title: 'Financeiro',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
         name="config" 
         options={{ 
           title: t('profile.settings'),
