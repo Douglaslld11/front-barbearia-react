@@ -21,6 +21,7 @@ import { Button } from '../../components/ui/Button';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '../../constants/theme';
 import { 
   Trash2, 
+  Pencil,
   ChevronRight, 
   ChevronLeft,
   CheckCircle2,
@@ -47,7 +48,7 @@ const DEFAULT_COLORS = {
 };
 
 export default function ConfigPage() {
-  const { barbearia, updateBarbearia, addService, removeService, addBarber, removeBarber, isLoading } = useBarbearia();
+  const { barbearia, updateBarbearia, addService, updateService, removeService, addBarber, updateBarber, removeBarber, isLoading } = useBarbearia();
   const { t, language, formatPrice } = useLanguage();
   
   // Use colors do context ou theme default
@@ -65,14 +66,16 @@ export default function ConfigPage() {
   const [paymentMethods, setPaymentMethods] = useState<string[]>(['money', 'pix', 'card', 'alias']);
   const [primaryColor, setPrimaryColor] = useState(themeColors.primary);
   
-  // Novo serviço estado
+  // Novo/Editar serviço estado
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [newServiceNamePt, setNewServiceNamePt] = useState('');
   const [newServiceNameEs, setNewServiceNameEs] = useState('');
   const [newServicePricePt, setNewServicePricePt] = useState('');
   const [newServicePriceEs, setNewServicePriceEs] = useState('');
   const [newServiceDuration, setNewServiceDuration] = useState('');
 
-  // Novo barbeiro estado
+  // Novo/Editar barbeiro estado
+  const [editingBarberId, setEditingBarberId] = useState<string | null>(null);
   const [newBarberName, setNewBarberName] = useState('');
   const [newBarberPhoto, setNewBarberPhoto] = useState('');
   const [newBarberCommission, setNewBarberCommission] = useState('50');
@@ -145,19 +148,27 @@ export default function ConfigPage() {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handleAddService = async () => {
+  const handleSaveService = async () => {
     if (!newServiceNamePt || !newServiceNameEs || !newServicePricePt || !newServicePriceEs || !newServiceDuration) {
         if(Platform.OS === 'web') window.alert(t('admin.config.fill_all') || 'Preencha todos os campos');
         return;
     }
     try {
-      await addService({
+      const serviceData = {
         nomePt: newServiceNamePt,
         nomeEs: newServiceNameEs,
         precoPt: Number(newServicePricePt),
         precoEs: Number(newServicePriceEs),
         duracao: Number(newServiceDuration),
-      });
+      };
+
+      if (editingServiceId) {
+        await updateService(editingServiceId, serviceData);
+      } else {
+        await addService(serviceData);
+      }
+
+      setEditingServiceId(null);
       setNewServiceNamePt('');
       setNewServiceNameEs('');
       setNewServicePricePt('');
@@ -168,13 +179,31 @@ export default function ConfigPage() {
     }
   };
 
-  const handleAddBarber = async () => {
+  const handleEditService = (service: any) => {
+    setEditingServiceId(service.id);
+    setNewServiceNamePt(service.nomePt);
+    setNewServiceNameEs(service.nomeEs);
+    setNewServicePricePt(String(service.precoPt));
+    setNewServicePriceEs(String(service.precoEs));
+    setNewServiceDuration(String(service.duracao));
+  };
+
+  const cancelEditService = () => {
+    setEditingServiceId(null);
+    setNewServiceNamePt('');
+    setNewServiceNameEs('');
+    setNewServicePricePt('');
+    setNewServicePriceEs('');
+    setNewServiceDuration('');
+  };
+
+  const handleSaveBarber = async () => {
     if (!newBarberName || !newBarberCommission || !newBarberEmail || !newBarberPassword) {
         if(Platform.OS === 'web') window.alert('Preencha nome, e-mail, senha e comissão');
         return;
     }
     try {
-      await addBarber({
+      const barberData = {
         nome: newBarberName,
         foto: newBarberPhoto || 'https://images.unsplash.com/photo-1503443207922-dff7d543fd0e?w=400',
         commission: Number(newBarberCommission) || 0,
@@ -185,7 +214,15 @@ export default function ConfigPage() {
           canEditConfig,
           canEditAgenda: true
         }
-      });
+      };
+
+      if (editingBarberId) {
+        await updateBarber(editingBarberId, barberData);
+      } else {
+        await addBarber(barberData);
+      }
+
+      setEditingBarberId(null);
       setNewBarberName('');
       setNewBarberPhoto('');
       setNewBarberCommission('50');
@@ -196,6 +233,28 @@ export default function ConfigPage() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleEditBarber = (barber: any) => {
+    setEditingBarberId(barber.id);
+    setNewBarberName(barber.nome);
+    setNewBarberPhoto(barber.foto);
+    setNewBarberCommission(String(barber.commission || 50));
+    setNewBarberEmail(barber.email || '');
+    setNewBarberPassword(barber.password || '');
+    setCanViewFinance(barber.permissions?.canViewFinance || false);
+    setCanEditConfig(barber.permissions?.canEditConfig || false);
+  };
+
+  const cancelEditBarber = () => {
+    setEditingBarberId(null);
+    setNewBarberName('');
+    setNewBarberPhoto('');
+    setNewBarberCommission('50');
+    setNewBarberEmail('');
+    setNewBarberPassword('');
+    setCanViewFinance(false);
+    setCanEditConfig(false);
   };
 
   const handleViewApp = () => {
@@ -298,13 +357,19 @@ export default function ConfigPage() {
                       {`${formatPrice(service.precoPt, service.precoEs)} • ${service.duracao} min`}
                     </Text>
                   </View>
-                  <TouchableOpacity onPress={() => removeService(service.id)} style={styles.deleteBtn}>
-                    <Trash2 color="#FF4444" size={20} />
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row' }}>
+                    <TouchableOpacity onPress={() => handleEditService(service)} style={styles.actionIconBtn}>
+                      <Pencil color="#3B82F6" size={20} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => removeService(service.id)} style={styles.actionIconBtn}>
+                      <Trash2 color="#FF4444" size={20} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))}
 
               <View style={[styles.addBox, { backgroundColor: `${primaryColor}10`, borderColor: primaryColor }]}>
+                {editingServiceId && <Text style={[styles.label, {color: primaryColor, marginBottom: 10}]}>Editando Serviço...</Text>}
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newServiceNamePt} onChangeText={setNewServiceNamePt} placeholder="Nome em Português" placeholderTextColor={themeColors.textMuted} />
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newServiceNameEs} onChangeText={setNewServiceNameEs} placeholder="Nombre en Español" placeholderTextColor={themeColors.textMuted} />
                 <View style={styles.row}>
@@ -312,7 +377,13 @@ export default function ConfigPage() {
                    <TextInput style={[styles.inputSmall, { flex: 1, backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newServicePriceEs} onChangeText={setNewServicePriceEs} placeholder="Preço (GS)" keyboardType="numeric" placeholderTextColor={themeColors.textMuted} />
                 </View>
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newServiceDuration} onChangeText={setNewServiceDuration} placeholder="Minutos de Duração" keyboardType="numeric" placeholderTextColor={themeColors.textMuted} />
-                <Button title="Adicionar" onPress={handleAddService} variant="outline" style={{marginTop: 8, borderColor: primaryColor}} textStyle={{color: primaryColor}} />
+                
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+                  {editingServiceId && (
+                    <Button title="Cancelar" onPress={cancelEditService} variant="outline" style={{ flex: 1, borderColor: themeColors.textMuted }} textStyle={{ color: themeColors.textMuted }} />
+                  )}
+                  <Button title={editingServiceId ? "Salvar" : "Adicionar"} onPress={handleSaveService} variant="outline" style={{ flex: editingServiceId ? 1 : undefined, width: editingServiceId ? undefined : '100%', borderColor: primaryColor }} textStyle={{ color: primaryColor }} />
+                </View>
               </View>
             </Card>
           </Animated.View>
@@ -329,14 +400,20 @@ export default function ConfigPage() {
                       <Text style={[styles.itemName, { color: themeColors.text }]}>{barber.nome}</Text>
                       <Text style={[styles.itemMeta, { color: themeColors.textMuted }]}>{`${barber.commission}% de Comissão`}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => removeBarber(barber.id)} style={styles.deleteBtn}>
-                      <Trash2 color="#FF4444" size={20} />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row' }}>
+                      <TouchableOpacity onPress={() => handleEditBarber(barber)} style={styles.actionIconBtn}>
+                        <Pencil color="#3B82F6" size={20} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => removeBarber(barber.id)} style={styles.actionIconBtn}>
+                        <Trash2 color="#FF4444" size={20} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 ))}
               </View>
 
               <View style={[styles.addBox, { backgroundColor: `${primaryColor}10`, borderColor: primaryColor }]}>
+                {editingBarberId && <Text style={[styles.label, {color: primaryColor, marginBottom: 10}]}>Editando Barbeiro...</Text>}
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberName} onChangeText={setNewBarberName} placeholder="Nome do Barbeiro" placeholderTextColor={themeColors.textMuted} />
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberCommission} onChangeText={setNewBarberCommission} placeholder="% de Comissão (Ex: 50)" keyboardType="numeric" placeholderTextColor={themeColors.textMuted} />
                 <TextInput style={[styles.inputSmall, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.divider }]} value={newBarberEmail} onChangeText={setNewBarberEmail} placeholder="E-mail de Login" keyboardType="email-address" autoCapitalize="none" placeholderTextColor={themeColors.textMuted} />
@@ -370,7 +447,12 @@ export default function ConfigPage() {
                   )}
                 </TouchableOpacity>
 
-                <Button title="Adicionar Barbeiro" onPress={handleAddBarber} variant="outline" style={{marginTop: 15, borderColor: primaryColor}} textStyle={{color: primaryColor}} />
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 15 }}>
+                  {editingBarberId && (
+                    <Button title="Cancelar" onPress={cancelEditBarber} variant="outline" style={{ flex: 1, borderColor: themeColors.textMuted }} textStyle={{ color: themeColors.textMuted }} />
+                  )}
+                  <Button title={editingBarberId ? "Salvar" : "Adicionar Barbeiro"} onPress={handleSaveBarber} variant="outline" style={{ flex: editingBarberId ? 1 : undefined, width: editingBarberId ? undefined : '100%', borderColor: primaryColor }} textStyle={{ color: primaryColor }} />
+                </View>
               </View>
             </Card>
           </Animated.View>
@@ -524,7 +606,7 @@ const styles = StyleSheet.create({
   listItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1 },
   itemName: { ...TYPOGRAPHY.body, fontWeight: '700' },
   itemMeta: { ...TYPOGRAPHY.caption, marginTop: 4 },
-  deleteBtn: { padding: 8 },
+  actionIconBtn: { padding: 8, marginLeft: 4 },
   avatar: { width: 50, height: 50, borderRadius: 25 },
   list: { marginBottom: 10 },
   paymentGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md, justifyContent: 'space-between' },

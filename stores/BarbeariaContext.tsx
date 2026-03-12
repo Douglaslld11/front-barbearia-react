@@ -76,8 +76,10 @@ interface BarbeariaContextType {
   loginBarber: (id: string | null) => void;
   updateBarbearia: (data: Partial<BarbeariaData>) => Promise<void>;
   addService: (service: Omit<Service, 'id'>) => Promise<void>;
+  updateService: (id: string, service: Omit<Service, 'id'>) => Promise<void>;
   removeService: (id: string) => Promise<void>;
   addBarber: (barber: Omit<Barber, 'id'>) => Promise<void>;
+  updateBarber: (id: string, barber: Omit<Barber, 'id'>) => Promise<void>;
   removeBarber: (id: string) => Promise<void>;
   addAppointment: (appointment: Omit<Appointment, 'id' | 'status'>) => Promise<void>;
   updateAppointmentStatus: (id: string, status: 'accepted' | 'rejected') => Promise<void>;
@@ -206,6 +208,16 @@ export function BarbeariaProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
 
+  const updateService = async (id: string, service: Omit<Service, 'id'>) => {
+    if (!barbearia) return;
+    const updated = {
+      ...barbearia,
+      services: barbearia.services.map(s => s.id === id ? { ...service, id } : s)
+    };
+    setBarbearia(updated);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  };
+
   const removeService = async (id: string) => {
     if (!barbearia) return;
     const updated = {
@@ -222,6 +234,16 @@ export function BarbeariaProvider({ children }: { children: ReactNode }) {
     const updated = {
       ...barbearia,
       barbers: [...(barbearia.barbers || []), newBarber]
+    };
+    setBarbearia(updated);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  };
+
+  const updateBarber = async (id: string, barber: Omit<Barber, 'id'>) => {
+    if (!barbearia) return;
+    const updated = {
+      ...barbearia,
+      barbers: barbearia.barbers.map(b => b.id === id ? { ...barber, id } : b)
     };
     setBarbearia(updated);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
@@ -299,8 +321,10 @@ export function BarbeariaProvider({ children }: { children: ReactNode }) {
       loginBarber,
       updateBarbearia, 
       addService, 
+      updateService,
       removeService, 
       addBarber, 
+      updateBarber,
       removeBarber,
       addAppointment,
       updateAppointmentStatus,
