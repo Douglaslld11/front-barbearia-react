@@ -9,7 +9,7 @@ import { Check, X, Calendar, Clock, User, Scissors, Settings, DollarSign } from 
 import { router } from 'expo-router';
 
 export default function AdminDashboard() {
-  const { barbearia, updateAppointmentStatus, activeBarberId } = useBarbearia();
+  const { barbearia, updateAppointmentStatus, activeBarberId, loginBarber } = useBarbearia();
   const { language, t, formatPrice } = useLanguage();
   const appointments = barbearia?.appointments || [];
   
@@ -22,8 +22,13 @@ export default function AdminDashboard() {
   const canViewFinance = isOwner || activeBarber?.permissions?.canViewFinance;
   const canEditConfig = isOwner || activeBarber?.permissions?.canEditConfig;
 
-  const pending = appointments.filter(a => a.status === 'pending');
-  const accepted = appointments.filter(a => a.status === 'accepted');
+  // Filtra agendamentos: o dono vê todos, o barbeiro vê apenas os dele
+  const visibleAppointments = isOwner 
+    ? appointments 
+    : appointments.filter(a => a.barberId === activeBarberId);
+
+  const pendingAppointments = visibleAppointments.filter(a => a.status === 'pending');
+  const acceptedAppointments = visibleAppointments.filter(a => a.status === 'accepted');
 
   const getServiceName = (id: string) => {
     const s = barbearia?.services.find(service => service.id === id);
@@ -121,7 +126,7 @@ export default function AdminDashboard() {
       <Animated.View entering={FadeInUp.duration(600)} style={[styles.header, { backgroundColor: themeColors.surface }]}>
         <View style={styles.headerTextContainer}>
           <Text style={[styles.title, { color: themeColors.text }]} numberOfLines={1}>{t('admin.dashboard.title', { name: barbearia?.nome || 'Barbeiro' })}</Text>
-          <Text style={[styles.subtitle, { color: themeColors.textMuted }]} numberOfLines={1}>{t('admin.dashboard.pending', { count: pending.length })}</Text>
+          <Text style={[styles.subtitle, { color: themeColors.textMuted }]} numberOfLines={1}>{t('admin.dashboard.pending', { count: pendingAppointments.length })}</Text>
         </View>
         <View style={styles.headerActions}>
           {canViewFinance && (
@@ -137,20 +142,28 @@ export default function AdminDashboard() {
               <Settings color={primaryColor} size={20} />
             </TouchableOpacity>
           )}
+          <TouchableOpacity style={[styles.iconButton, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]} onPress={() => {
+            if (!isOwner) {
+               loginBarber(null);
+            }
+            router.replace('/landing');
+          }}>
+            <X color="#EF4444" size={20} />
+          </TouchableOpacity>
         </View>
       </Animated.View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {pending.length > 0 && (
+        {pendingAppointments.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: primaryColor }]}>{t('admin.dashboard.waiting')}</Text>
-            {pending.map((item, i) => renderAppointment(item, i))}
+            {pendingAppointments.map((item, i) => renderAppointment(item, i))}
           </View>
         )}
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: primaryColor }]}>{t('admin.dashboard.upcoming')}</Text>
-          {accepted.length > 0 ? accepted.map((item, i) => renderAppointment(item, i + pending.length)) : (
+          {acceptedAppointments.length > 0 ? acceptedAppointments.map((item, i) => renderAppointment(item, i + pendingAppointments.length)) : (
             <Text style={[styles.emptyText, { color: themeColors.textMuted }]}>{t('admin.dashboard.empty')}</Text>
           )}
         </View>

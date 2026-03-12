@@ -52,7 +52,7 @@ export default function BarberLogin() {
       
       if (foundBarber) {
          loginBarber(foundBarber.id);
-         router.replace('/admin/agenda'); // Leva direto pra agenda, pois ele é barbeiro
+         router.replace('/admin/dashboard'); 
       } else {
          if (Platform.OS === 'web') {
            window.alert('Credenciais inválidas');
