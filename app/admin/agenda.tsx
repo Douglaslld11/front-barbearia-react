@@ -20,10 +20,12 @@ interface SelectedSlot {
 }
 
 export default function AdminAgenda() {
-  const { barbearia, updateBlockedSlots } = useBarbearia();
+  const { barbearia, updateBlockedSlots, activeBarberId } = useBarbearia();
   const { t, language } = useLanguage();
   const [selectedDate, setSelectedDate] = useState(startOfToday());
   const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
+
+  const isOwner = !activeBarberId;
 
   const appointments = barbearia?.appointments || [];
   const barbers = barbearia?.barbers || [];
@@ -40,6 +42,12 @@ export default function AdminAgenda() {
   };
 
   const handleSlotPress = (barberId: string, time: string, hasAppointment: boolean) => {
+    if (!isOwner && barberId !== activeBarberId) {
+      if (Platform.OS === 'web') window.alert('Você só pode alterar a sua própria agenda.');
+      else Alert.alert('Acesso Negado', 'Você só pode alterar a sua própria agenda.');
+      return;
+    }
+
     if (hasAppointment) {
       if (Platform.OS === 'web') window.alert('Horário ocupado por agendamento.');
       else Alert.alert('Aviso', 'Este horário já possui um agendamento.');
